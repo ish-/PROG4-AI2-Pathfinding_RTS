@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(OscCpp VERSION 1.0)
+project(AI2_pathfinding VERSION 1.0)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -42,24 +42,27 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 include_directories(./ext/)
 
-include_directories("${PROJECT_SOURCE_DIR}")
+include_directories(${PROJECT_SOURCE_DIR})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE IS_WIN=$<BOOL:${WIN32}> IS_MAC=$<BOOL:${APPLE}> IS_LINUX=$<BOOL:${LINUX}>)
 
 # !!!!!! copy resources
 # set(RESOURCE_FILES
 #     ${PROJECT_SOURCE_DIR}/shaders
 # )
-# add_custom_target(copy_resources ALL
-#     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/resources/shaders
-#     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/config.json ${CMAKE_BINARY_DIR}/resources/config.json
-#     DEPENDS ${RESOURCE_FILES}
-#     COMMENT "Copying resource files to build directory"
-# )
+add_custom_target(copy_resources ALL
+    # COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/resources/shaders
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/config.json ${CMAKE_BINARY_DIR}/resources/config.json
+    DEPENDS ${RESOURCE_FILES}
+    COMMENT "Copying resource files to build directory"
+)
 
 # !!!!!! -- LIBS
 include(FetchContent)
 
 # !!!!!! RAYLIB
 set(GLFW_USE_HYBRID_HPG 1) # use high perf gpu
+set(GRAPHIC_API GRAPHICS_API_OPENGL_41)
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY https://github.com/raysan5/raylib.git
@@ -67,3 +70,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+
+# !!!!!! JSON
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json
+    GIT_TAG        v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)

@@ -1,8 +1,15 @@
+#pragma once
 #include <iostream>
+#include <raymath.h>
 
-bool _LOG = true;
-template <typename T1, typename T2 = const char*>
-void _log(T1 str1, T2 str2 = "") {
-    if (_LOG)
-        std::cout << "\x1b[31m" << str1 << " " << str2 << "\x1b[0m\n";
+inline std::ostream& operator<<(std::ostream& os, const Vector2& v) {
+  os << "Vector2(" << v.x << ", " << v.y << ")";
+  return os;
+}
+
+template <typename... T>
+inline void LOG (const char* title, T&&... args) {
+  std::cout << "[LOG] " << title << " -> ";
+  ((std::cout << args << " "), ...);
+  std::cout << std::endl;
 }

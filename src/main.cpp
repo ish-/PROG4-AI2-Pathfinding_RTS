@@ -8,6 +8,7 @@
 #include "raymath.h"
 
 #include "common/math.h"
+#include "common/log.cpp"
 #include "Grid.h"
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
@@ -27,10 +28,44 @@ void DrawRenderTexture (RenderTexture2D rt) {
 }
 
 bool showDebug;
+Vector2 mousePos {wSize.x/2,wSize.y/2};
+int mouseZ = 0;
+int frame = 0;
+double now = 0;
+double delta = 0;
+
+Grid grid ({0, 0, wSize.x, wSize.y }, gridSize);
+Cell* lastHoverCell;
+Cell* hoverCell;
+
+Vector2& pointer = mousePos;
+StateChangeDetector fullscreenBtn;
+StateChangeDetector reloadConfigBtn;
+StateChangeDetector showDebugBtn;
+StateChangeDetector pointerActBtn;
+
+Cell* getHoverCell () {
+    if (0 < mousePos.x && mousePos.x < wSize.x && 0 < mousePos.y && mousePos.y < wSize.y) {
+        // unique_lock<mutex> lock(gridMutex);
+        int x = Clamp(floor(mousePos.x / cellSize.x), 0.f, gridSize.x);
+        int y = Clamp(floor(mousePos.y / cellSize.y), 0.f, gridSize.y);
+        return grid.at(x, y);
+    }
+    return nullptr;
+}
+
+void handleMouseClick () {
+    hoverCell->color = RED;
+
+    LOG("handleMouseClick()", hoverCell->coord);
+    grid.setFlowField(hoverCell);
+}
+
 int main()
 {
     CONF = LoadConfig();
-
+    printf("Config version: %s\n", CONF.version.c_str());
+    
     InitWindow(wSize.x, wSize.y, "Osc Cpp");
     // ToggleBorderlessWindowed();
     // HideCursor();
@@ -43,35 +78,21 @@ int main()
     SetTargetFPS(FPS);
     ClearBackground(BLACK);
 
-    Vector2 mouse {wSize.x/2,wSize.y/2};
-    int mouseZ = 0;
-    int frame = 0;
-
-    Grid grid ({0, 0, wSize.x, wSize.y }, gridSize);
-    Cell* lastHoverCell = nullptr;
-
-    Vector2& pointer = mouse;
-    StateChangeDetector fullscreenBtn;
-    StateChangeDetector reloadConfigBtn;
-    StateChangeDetector showDebugBtn;
-
     double frameTime = 0.;
     while (!WindowShouldClose()) {
-        double now = GetTime(); frame++;
-        double delta = GetFrameTime();
-        mouse = GetMousePosition();
+        now = GetTime(); frame++;
+        delta = GetFrameTime();
+
+        mousePos = GetMousePosition();
         mouseZ = IsMouseButtonPressed(0) ? 1 : (IsMouseButtonPressed(1) ? -1 : 0);
 
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
             showDebug = !showDebug;
 
-        Cell* hoverCell = nullptr;
-        if (0 < mouse.x && mouse.x < wSize.x && 0 < mouse.y && mouse.y < wSize.y) {
-            // unique_lock<mutex> lock(gridMutex);
-            int x = clamp(floor(mouse.x / cellSize.x), 0.f, gridSize.x);
-            int y = clamp(floor(mouse.y / cellSize.y), 0.f, gridSize.y);
-            hoverCell = grid.at(x, y);
-        }
+        hoverCell = getHoverCell();
+
+        if (pointerActBtn.hasChangedOn(IsMouseButtonPressed(0)))
+            handleMouseClick();
 
         BeginDrawing();
             ClearBackground(BLACK);
@@ -87,7 +108,7 @@ int main()
 
             if (showDebug) {
                 DrawText(TextFormat("%i fps", GetFPS()), 20, 20, 30, DEBUG_COLOR);
-                if (lastHoverCell != nullptr)
+                if (hoverCell)
                     DrawText(TextFormat("pointer: %.0f : %.0f", hoverCell->coord.x, hoverCell->coord.y), 20, 50, 30, DEBUG_COLOR);
             }
         EndDrawing();
