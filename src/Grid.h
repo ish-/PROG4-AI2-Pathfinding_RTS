@@ -2,15 +2,13 @@
 
 #include <vector>
 
-#include "common/math.h"
-#include "common/log.cpp"
-
-// ivec2 KERNEL_1[4];
-// ivec2 DIAGONAL_KERNEL_1[4];
+#include "common/math.hpp"
+#include "common/log.hpp"
 
 struct GridCell {
-    ivec2 pos = {0,0};
-    GridCell (int x, int y) : pos({x, y}) {};
+    ivec2 pos = {-1,-1};
+    int idx = -1;
+    GridCell (ivec2 pos, int idx) : pos(pos), idx(idx) {};
     GridCell () = default;
 };
 
@@ -20,39 +18,69 @@ public:
     ivec2 size;
     std::vector<TCell> cells;
 
-    Grid (ivec2 size);
+    Grid (const ivec2& size);
 
-    TCell* at (ivec2 pos);
+    void init ();
 
-    TCell* at (int x, int y);
+    TCell* at (const ivec2& pos);
+
+    TCell* at (const int& x, const int& y);
 };
 
 template <typename TCell>
-Grid<TCell>::Grid (ivec2 _size) {
-    size = _size;
-
+Grid<TCell>::Grid (const ivec2& size): size(size) {
     int length = size.x * size.y;
     cells.reserve(length);
-
     for (int y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x) {
-            // TCell cell = TCell(x, y);
-            TCell cell {{x, y}};
-            LOG("Grid::Grid", cell.pos);
+            int idx = y * size.x + x;
+            TCell cell({ivec2{x, y}, idx});
             cells.push_back(cell);
         }
     }
 };
 
 template <typename TCell>
-TCell* Grid<TCell>::at (ivec2 pos) {
+void Grid<TCell>::init () {
+    // cells.erase(cells.begin(), cells.end());
+
+    
+}
+
+template <typename TCell>
+TCell* Grid<TCell>::at (const ivec2& pos) {
     return at(pos.x, pos.y);
 }
 
 template <typename TCell>
-TCell* Grid<TCell>::at (int x, int y) {
+TCell* Grid<TCell>::at (const int& x, const int& y) {
     int idx = y * size.x + x;
     if (x < 0 || y < 0 || x >= size.x || y >= size.y)
         return nullptr;
     return &cells.at(idx);
 }
+
+inline ivec2 KERNEL_1[4] = {
+    ivec2{ 1, 0 },
+    ivec2{ 0, 1 },
+    ivec2{ -1, 0 },
+    ivec2{ 0, -1 },
+};
+
+inline ivec2 KERNEL_DIAGONAL_1[4] = {
+    ivec2{ 1, 1 },
+    ivec2{ -1, 1 },
+    ivec2{ -1, -1 },
+    ivec2{ 1, -1 },
+};
+
+inline ivec2 KERNEL_ALL_1[8] = {
+    ivec2{ 1, 0 },
+    ivec2{ 0, 1 },
+    ivec2{ -1, 0 },
+    ivec2{ 0, -1 },
+    ivec2{ 1, 1 },
+    ivec2{ -1, 1 },
+    ivec2{ -1, -1 },
+    ivec2{ 1, -1 },
+};

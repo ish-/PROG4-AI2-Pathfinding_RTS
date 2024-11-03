@@ -7,8 +7,8 @@
 #include <raylib.h>
 #include <raymath.h>
 
-#include "common/math.h"
-#include "common/log.cpp"
+#include "common/math.hpp"
+#include "common/log.hpp"
 #include "FlowGrid.h"
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
@@ -59,7 +59,9 @@ void handleMouseClick () {
     // hoverCell->color = RED;
 
     // LOG("handleMouseClick()", hoverCell->coord);
-    // grid.setFlowField(hoverCell);
+    // grid.init();
+    grid.reset();
+    grid.setFlowField(hoverCell, grid.at(8,8));
 }
 
 int main()
@@ -75,6 +77,9 @@ int main()
     printf("WINDOW SIZE: %f - %f\n", wSize.x, wSize.y);
     printf("GetWorkingDirectory(): %s\n", GetWorkingDirectory());
     // SetWindowSize(wSize.x, wSize.y);
+
+    for (auto& cell : grid.cells)
+        cell.obstacle = bool((rand() / (float)RAND_MAX) > .8);
 
     SetTargetFPS(FPS);
     ClearBackground(BLACK);
