@@ -1,31 +1,58 @@
 #pragma once
 
 #include <vector>
-#include <functional>
 
-#include "raylib.h"
-#include "raymath.h"
+#include "common/math.h"
+#include "common/log.cpp"
 
-#include "Cell.h"
+// ivec2 KERNEL_1[4];
+// ivec2 DIAGONAL_KERNEL_1[4];
 
-using namespace std;
+struct GridCell {
+    ivec2 pos = {0,0};
+    GridCell (int x, int y) : pos({x, y}) {};
+    GridCell () = default;
+};
 
+template <typename TCell = GridCell>
 class Grid {
 public:
-  Rectangle rect;
-  Vector2 size;
-  vector<Cell*> cells;
-  Color cellColor = WHITE;
+    ivec2 size;
+    std::vector<TCell> cells;
 
-  Grid (Rectangle _rect, Vector2 _size);
-  ~Grid ();
+    Grid (ivec2 size);
 
-  Cell* at (Vector2 coord) const;
-  Cell* at (int x, int y) const;
+    TCell* at (ivec2 pos);
 
-  void forKernel(Vector2& coord, const std::function<void(Cell* cell, const Vector2& offset)>& func) const;
-
-  void setFlowField(Cell* fromCell) const;
-
-  void draw() const;
+    TCell* at (int x, int y);
 };
+
+template <typename TCell>
+Grid<TCell>::Grid (ivec2 _size) {
+    size = _size;
+
+    int length = size.x * size.y;
+    cells.reserve(length);
+
+    for (int y = 0; y < size.y; ++y) {
+        for (int x = 0; x < size.x; ++x) {
+            // TCell cell = TCell(x, y);
+            TCell cell {{x, y}};
+            LOG("Grid::Grid", cell.pos);
+            cells.push_back(cell);
+        }
+    }
+};
+
+template <typename TCell>
+TCell* Grid<TCell>::at (ivec2 pos) {
+    return at(pos.x, pos.y);
+}
+
+template <typename TCell>
+TCell* Grid<TCell>::at (int x, int y) {
+    int idx = y * size.x + x;
+    if (x < 0 || y < 0 || x >= size.x || y >= size.y)
+        return nullptr;
+    return &cells.at(idx);
+}

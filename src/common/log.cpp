@@ -2,10 +2,7 @@
 #include <iostream>
 #include <raymath.h>
 
-inline std::ostream& operator<<(std::ostream& os, const Vector2& v) {
-  os << "Vector2(" << v.x << ", " << v.y << ")";
-  return os;
-}
+#include "common/math.h"
 
 template <typename... T>
 inline void LOG (const char* title, T&&... args) {

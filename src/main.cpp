@@ -4,12 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "raylib.h"
-#include "raymath.h"
+#include <raylib.h>
+#include <raymath.h>
 
 #include "common/math.h"
 #include "common/log.cpp"
-#include "Grid.h"
+#include "FlowGrid.h"
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
 
@@ -18,9 +18,9 @@ float FPS = 120.f;
 float FRAME_TIME = 1. / FPS;
 Vector2 wSize {1280, 720};
 Vector2 wRatio { 16, 9 };
-Vector2 gridSize { wRatio.x*2, wRatio.y*2 };
+ivec2 gridSize { (int)wRatio.x*2, (int)wRatio.y*2 };
 Vector2 cellSize = { wSize.x / gridSize.x, wSize.y / gridSize.y };
-Color CELL_HOVER_COLOR = ORANGE;
+// Color CELL_HOVER_COLOR = ORANGE;
 Color DEBUG_COLOR = BLACK;
 
 void DrawRenderTexture (RenderTexture2D rt) {
@@ -34,7 +34,8 @@ int frame = 0;
 double now = 0;
 double delta = 0;
 
-Grid grid ({0, 0, wSize.x, wSize.y }, gridSize);
+using Cell = FlowCell;
+FlowGrid grid (gridSize);
 Cell* lastHoverCell;
 Cell* hoverCell;
 
@@ -55,10 +56,10 @@ Cell* getHoverCell () {
 }
 
 void handleMouseClick () {
-    hoverCell->color = RED;
+    // hoverCell->color = RED;
 
-    LOG("handleMouseClick()", hoverCell->coord);
-    grid.setFlowField(hoverCell);
+    // LOG("handleMouseClick()", hoverCell->coord);
+    // grid.setFlowField(hoverCell);
 }
 
 int main()
@@ -77,7 +78,7 @@ int main()
 
     SetTargetFPS(FPS);
     ClearBackground(BLACK);
-
+    
     double frameTime = 0.;
     while (!WindowShouldClose()) {
         now = GetTime(); frame++;
@@ -97,19 +98,19 @@ int main()
         BeginDrawing();
             ClearBackground(BLACK);
 
-            if (lastHoverCell != nullptr)
-                lastHoverCell->color = grid.cellColor;
-            if (hoverCell != nullptr) {
-                hoverCell->color = CELL_HOVER_COLOR;
-                lastHoverCell = hoverCell;
-            }
+            // if (lastHoverCell != nullptr)
+            //     lastHoverCell->color = grid.cellColor;
+            // if (hoverCell != nullptr) {
+            //     hoverCell->color = CELL_HOVER_COLOR;
+            //     lastHoverCell = hoverCell;
+            // }
 
-            grid.draw();
+            grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
 
             if (showDebug) {
                 DrawText(TextFormat("%i fps", GetFPS()), 20, 20, 30, DEBUG_COLOR);
                 if (hoverCell)
-                    DrawText(TextFormat("pointer: %.0f : %.0f", hoverCell->coord.x, hoverCell->coord.y), 20, 50, 30, DEBUG_COLOR);
+                    DrawText(TextFormat("hoverCell: %i : %i", hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, DEBUG_COLOR);
             }
         EndDrawing();
     }
