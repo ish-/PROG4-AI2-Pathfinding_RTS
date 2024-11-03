@@ -37,7 +37,7 @@ void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
 
         vec2 pos {cell.pos.x * cellSize.x, cell.pos.y * cellSize.y};
         DrawRectangle(pos.x, pos.y, cellSize.x, cellSize.y, fillColor);
-        DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
+        // DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
         // DrawText(TextFormat("%.1f,%.1f", cell.pfToStart.x, cell.pfToStart.y), pos.x + 2, pos.y + 2, 11, BLACK);
         if (cell.pfPath)
             DrawRectangle(pos.x + cellSize.x/2, pos.y + cellSize.y/2, cellSize.x/2, cellSize.y/2, RED);
@@ -69,7 +69,7 @@ void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
             if (cell->obstacle)
                 continue;
             if (i > 3) { // diagonal 
-                LOG("i:", i, curCell->pos);
+                // LOG("i:", i, curCell->pos);
                 if (at(curCell->pos + ivec2(offset.x, 0))->obstacle && at(curCell->pos + ivec2(0, offset.y))->obstacle) {
                     curCell->corner = true;
                     cell->corner = true;
@@ -94,13 +94,14 @@ void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
 void FlowGrid::setPath(FlowCell* fromCell, FlowCell* toCell) {
     for(FlowCell* cell = toCell; cell != fromCell; cell = cell->pfFromCell) {
         cell->pfPath = true;
-        path.push_back(*cell);
+        path.push_back(cell);
     }
     fromCell->pfPath = true;
-    path.push_back(*fromCell);
+    path.push_back(fromCell);
 }
 
 void FlowGrid::reset () {
+    path.erase(path.begin(), path.end());
     for (auto& cell : cells) {
         cell.pfDist = 9999;
         cell.pfToStart = Vector2{0,0};

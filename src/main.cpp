@@ -18,7 +18,7 @@ float FPS = 120.f;
 float FRAME_TIME = 1. / FPS;
 Vector2 wSize {1280, 720};
 Vector2 wRatio { 16, 9 };
-ivec2 gridSize { (int)wRatio.x*2, (int)wRatio.y*2 };
+ivec2 gridSize { (int)wRatio.x*6, (int)wRatio.y*6 };
 Vector2 cellSize = { wSize.x / gridSize.x, wSize.y / gridSize.y };
 // Color CELL_HOVER_COLOR = ORANGE;
 Color DEBUG_COLOR = BLACK;
@@ -61,7 +61,7 @@ void handleMouseClick () {
     // LOG("handleMouseClick()", hoverCell->coord);
     // grid.init();
     grid.reset();
-    grid.setFlowField(hoverCell, grid.at(8,8));
+    grid.setFlowField(hoverCell, grid.at(0,0));
 }
 
 int main()

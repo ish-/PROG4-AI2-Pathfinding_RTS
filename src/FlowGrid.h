@@ -29,7 +29,7 @@ struct FlowCell : GridCell {
 
 class FlowGrid : public Grid<FlowCell> {
 public:
-    std::vector<FlowCell> path;
+    std::vector<FlowCell*> path;
 
     FlowGrid (ivec2& size) : Grid(size) {};
 
