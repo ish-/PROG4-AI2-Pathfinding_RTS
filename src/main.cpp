@@ -27,6 +27,23 @@ void DrawRenderTexture (RenderTexture2D rt) {
     DrawTextureRec(rt.texture, {0,0,wSize.x,-wSize.y}, {0,0}, WHITE);
 }
 
+vec2 AABB_NULL {0,0};
+vec2 checkAABBCollision (Rectangle obstacle, Rectangle obj) {
+    vec2& result = AABB_NULL;
+    if (obj.x < obstacle.x + obstacle.width && obj.x + obj.width > obstacle.x &&
+        obj.y < obstacle.y + obstacle.height && obj.y + obj.height > obstacle.y) {
+        if (obj.x + obj.width > obstacle.x && obj.x < obstacle.x)
+            result.x = obstacle.x - (obj.x + obj.width);
+        else if (obj.x < obstacle.x + obstacle.width && obj.x + obj.width > obstacle.x + obstacle.width)
+            result.x = (obstacle.x + obstacle.width) - obj.x;
+        if (obj.y + obj.height > obstacle.y && obj.y < obstacle.y)
+            result.y = obstacle.y - (obj.y + obj.height);
+        else if (obj.y < obstacle.y + obstacle.height && obj.y + obj.height > obstacle.y + obstacle.height)
+            result.y = (obstacle.y + obstacle.height) - obj.y;
+    }
+    return result;
+}
+
 bool showDebug;
 Vector2 mousePos {wSize.x/2,wSize.y/2};
 int mouseZ = 0;

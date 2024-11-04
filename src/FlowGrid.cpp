@@ -2,6 +2,7 @@
 #include <raymath.h>
 
 #include "common/math.hpp"
+#include "common/log.hpp"
 
 #include "FlowGrid.h"
 #include "Grid.h"
@@ -48,6 +49,7 @@ void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
 
 void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
     reset();
+    LOG_TIMER timer("FlowGrid.setFlowField");
     fromCell->pfDist = 0;
     queueCells.push(fromCell);
 
@@ -101,6 +103,7 @@ void FlowGrid::setPath(FlowCell* fromCell, FlowCell* toCell) {
 }
 
 void FlowGrid::reset () {
+    LOG_TIMER timer("FlowGrid::reset");
     path.erase(path.begin(), path.end());
     for (auto& cell : cells) {
         cell.pfDist = 9999;
