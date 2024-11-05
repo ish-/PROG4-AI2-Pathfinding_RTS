@@ -131,7 +131,7 @@ Vector2 Boid::align(Boid* boid, float& dist, Vector2& dir) const {
 }
 
 // void Boid::update(vector<Boid*> boids, vector<Obstacle*> obstacles, Vector2& mouse, float& mouseZ) {
-void Boid::update(vector<Boid*> boids, vector<Obstacle*> obstacles) {
+void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
     closestBoid = {9999., nullptr };
     Vector2 avoidInfl{0,0};
     Vector2 alignInfl{0,0};

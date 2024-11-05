@@ -36,6 +36,7 @@ public:
         active = false;
         from = {0,0};
         to = {0,0};
+        rect = {0,0,0,0};
     };
 
     void draw () {

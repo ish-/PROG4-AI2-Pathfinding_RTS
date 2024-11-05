@@ -78,8 +78,8 @@ public:
     Vector2 avoid(Obstacle* obstacle) const;
 
     void update(
-        vector<Boid*> boids,
-        vector<Obstacle*> obstacles
+        vector<Boid*>& boids,
+        vector<Obstacle*>& obstacles
     );
 
     void draw() const;

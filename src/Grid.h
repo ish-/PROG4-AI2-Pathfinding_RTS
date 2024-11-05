@@ -18,9 +18,10 @@ public:
     ivec2 size;
     std::vector<TCell> cells;
 
+    Grid ();
     Grid (const ivec2& size);
 
-    void init ();
+    void init (const ivec2& size);
 
     TCell* at (const ivec2& pos);
 
@@ -28,7 +29,17 @@ public:
 };
 
 template <typename TCell>
-Grid<TCell>::Grid (const ivec2& size): size(size) {
+Grid<TCell>::Grid () {}
+
+template <typename TCell>
+Grid<TCell>::Grid (const ivec2& size) {
+    init(size);
+};
+
+template <typename TCell>
+void Grid<TCell>::init (const ivec2& size) {
+    this->size = size;
+
     int length = size.x * size.y;
     cells.reserve(length);
     for (int y = 0; y < size.y; ++y) {
@@ -38,13 +49,6 @@ Grid<TCell>::Grid (const ivec2& size): size(size) {
             cells.push_back(cell);
         }
     }
-};
-
-template <typename TCell>
-void Grid<TCell>::init () {
-    // cells.erase(cells.begin(), cells.end());
-
-    
 }
 
 template <typename TCell>

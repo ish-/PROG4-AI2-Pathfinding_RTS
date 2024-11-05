@@ -31,6 +31,7 @@ class FlowGrid : public Grid<FlowCell> {
 public:
     std::vector<FlowCell*> path;
 
+    FlowGrid () : Grid() {};
     FlowGrid (ivec2& size) : Grid(size) {};
 
     void setFlowField(FlowCell* fromCell, FlowCell* toCell);

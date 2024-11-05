@@ -16,6 +16,7 @@
 #include "config.hpp"
 #include "Selection.hpp"
 #include "Boid.h"
+#include "Order.hpp"
 
 Config CONF;
 float FPS = 120.f;
@@ -34,8 +35,9 @@ int frame = 0;
 double now = 0;
 double delta = 0;
 
-using Cell = FlowCell;
-FlowGrid grid (gridSize);
+using FGrid = FlowGrid;
+using FCell = FlowCell;
+FGrid grid (gridSize);
 
 Vector2& pointer = mousePos;
 StateChangeDetector fullscreenBtn;
@@ -43,11 +45,12 @@ StateChangeDetector reloadConfigBtn;
 StateChangeDetector showDebugBtn;
 StateChangeDetector pointerActBtn;
 
-Cell* lastHoverCell;
-Cell* hoverCell;
-Cell* destinationCell;
-Cell* getHoverCell ();
-void SetDestination (Cell* hoverCell);
+FCell* lastHoverCell;
+FCell* hoverCell;
+FCell* destinationCell;
+FCell* GetHoverCell (vec2 pos);
+ivec2 ScreenToGrid (vec2 pos);
+void SetDestination (FCell* hoverCell);
 void SetObstacles ();
 
 std::array<Rectangle, 40> obstacleRects;
@@ -77,6 +80,13 @@ auto drawAliveAndClearDead = !DEBUG_PERF ? [](Boid* boid) {
     return false;
 };
 
+Order CreateOrder (BoidSelection selection, vec2 dest) {
+    Order order(selection);
+    FCell* fromCell = order.grid.at(ScreenToGrid(vec2{ selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 }));
+    FCell* destCell = order.grid.at(ScreenToGrid(dest));
+    order.grid.setFlowField(fromCell, destCell);
+    return order;
+}
 
 int main()
 {
@@ -101,7 +111,7 @@ int main()
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
             showDebug = !showDebug;
 
-        hoverCell = getHoverCell();
+        hoverCell = GetHoverCell(mousePos);
 
 
         bool pointerActBtnChanged = pointerActBtn.hasChanged(IsMouseButtonDown(0));
@@ -158,12 +168,16 @@ int main()
     return 0;
 }
 
-Cell* getHoverCell () {
-    if (0 < mousePos.x && mousePos.x < wSize.x && 0 < mousePos.y && mousePos.y < wSize.y) {
-        // unique_lock<mutex> lock(gridMutex);
-        int x = Clamp(floor(mousePos.x / cellSize.x), 0.f, gridSize.x);
-        int y = Clamp(floor(mousePos.y / cellSize.y), 0.f, gridSize.y);
-        return grid.at(x, y);
+ivec2 ScreenToGrid (vec2 pos) {
+    return ivec2 {
+        static_cast<int>(Clamp(floor(pos.x / cellSize.x), 0.f, gridSize.x)),
+        static_cast<int>(Clamp(floor(pos.y / cellSize.y), 0.f, gridSize.y))
+    };
+}
+
+FCell* GetHoverCell (vec2 pos) {
+    if (0 < pos.x && pos.x < wSize.x && 0 < pos.y && pos.y < wSize.y) {
+        return grid.at(ScreenToGrid(pos));
     }
     return nullptr;
 }
@@ -192,7 +206,7 @@ void SetObstacles () {
     }
 }
 
-void SetDestination (Cell* hoverCell) {
+void SetDestination (FCell* hoverCell) {
     if (hoverCell)
         destinationCell = hoverCell;
 }
