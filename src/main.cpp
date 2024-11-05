@@ -14,6 +14,7 @@
 #include "FlowGrid.h"
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
+#include "Selection.hpp"
 
 Config CONF;
 float FPS = 120.f;
@@ -50,6 +51,8 @@ void setObstacles ();
 
 std::array<Rectangle, 40> obstacleRects;
 
+BoidSelection selection;
+
 int main()
 {
     CONF = LoadConfig();
@@ -75,15 +78,25 @@ int main()
         delta = GetFrameTime();
 
         mousePos = GetMousePosition();
-        mouseZ = IsMouseButtonPressed(0) ? 1 : (IsMouseButtonPressed(1) ? -1 : 0);
+        mouseZ = IsMouseButtonDown(0) ? 1 : (IsMouseButtonDown(1) ? -1 : 0);
 
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
             showDebug = !showDebug;
 
         hoverCell = getHoverCell();
 
-        if (pointerActBtn.hasChangedOn(IsMouseButtonPressed(0)))
-            setDestination(hoverCell);
+
+        bool pointerActBtnChanged = pointerActBtn.hasChanged(IsMouseButtonDown(0));
+        if (pointerActBtnChanged) {
+            if (pointerActBtn.state) {
+                setDestination(hoverCell);
+                selection.start(mousePos);
+            } else {
+                selection.stop(mousePos);
+            }
+        } else if (pointerActBtn.state) {
+            selection.update(mousePos);
+        }
 
         LOG_TIMER timer("FlowGrid.setFlowField", true);
         if (hoverCell && !hoverCell->obstacle && destinationCell && lastHoverCell != hoverCell) {
@@ -96,6 +109,9 @@ int main()
             ClearBackground(BLACK);
 
             grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
+
+            if (selection.active)
+                selection.draw();
 
             if (showDebug) {
                 DrawText(TextFormat("%i fps", GetFPS()), 20, 20, 30, DEBUG_COLOR);
