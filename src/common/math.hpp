@@ -4,6 +4,7 @@
 #include <string>
 
 #include <raylib.h>
+#include <raymath.h>
 
 using vec2 = Vector2;
 
@@ -26,6 +27,25 @@ struct ivec2 {
 };
 
 inline vec2 operator+ (const vec2& v1, const vec2& v2) { return vec2(v1.x + v2.x, v1.y + v2.y); }
+inline Vector2 operator+=(Vector2& a, const Vector2& b) {
+    a.x += b.x;
+    a.y += b.y;
+    return a;
+}
+inline Vector2 operator*=(Vector2& a, const float i) {
+    a.x *= i;
+    a.y *= i;
+    return a;
+}
+inline Vector2 operator-(const Vector2& a, const Vector2& b) {
+    return Vector2{a.x - b.x, a.y - b.y};
+}
+inline Vector2 operator*(const Vector2& a, const float i) {
+    return Vector2Multiply(a, Vector2{ i,i });
+}
+inline Vector2 operator/(const Vector2& a, const float i) {
+    return Vector2Divide(a, Vector2{ i,i });
+}
 
 inline float mapRange(float x, float in_min, float in_max, float out_min, float out_max) {
     return out_min + (x - in_min) * (out_max - out_min) / (in_max - in_min);
