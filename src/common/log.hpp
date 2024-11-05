@@ -14,17 +14,25 @@ inline void LOG (const char* title, T&&... args) {
 class LOG_TIMER {
 public:
   double start;
+  double elapsed;
+  bool silent;
   std::string title;
 
-  LOG_TIMER (const char* title) : title(title) {
+  LOG_TIMER (const char* title, bool silent = false) : title(title), silent(silent) {
     start = GetTime();
   }
 
   void stop () {
+    elapsed = GetTime() - start;
+  }
+
+  void destroy () {
     delete this;
   }
 
   ~LOG_TIMER () {
-    LOG("[timer]", title, GetTime() - start);
+    if (silent)
+      return;
+    LOG("[timer]", title, elapsed);
   }
 };

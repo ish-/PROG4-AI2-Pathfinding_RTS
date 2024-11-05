@@ -25,11 +25,11 @@ void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
             // float lightness = (1. - std::max(0., 20. - cell.pfDist) / 20.) * 255;
             // unsigned char uChLightness = (unsigned char)lightness;
             // fillColor = { uChLightness, uChLightness, uChLightness, 255 };
-            
+
             if (cell.pfDist < 1000) {
                 float angle = atan2(cell.pfToStart.y, cell.pfToStart.x) * (180.0f / PI);
                 fillColor = ColorFromHSV(angle, .5, 1);
-                
+
             //     float r = mapRange(cell.pfToStart.x, -1, 1, 0, 255);
             //     float g = mapRange(cell.pfToStart.y, -1, 1, 0, 255);
             //     fillColor = Color({(unsigned char)r, (unsigned char)g, 0, 255});
@@ -49,7 +49,7 @@ void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
 
 void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
     reset();
-    LOG_TIMER timer("FlowGrid.setFlowField");
+    // LOG_TIMER timer("FlowGrid.setFlowField");
     fromCell->pfDist = 0;
     queueCells.push(fromCell);
 
@@ -57,27 +57,28 @@ void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
         FlowCell* curCell = queueCells.front();
         queueCells.pop();
         passedCells.insert(curCell);
-        
+
         // LOG("curCell:", curCell->coord);
-        float nextDist = curCell->pfDist + 1;
 
         int i = -1;
         // LOG("curCell->pos:", curCell->pos);
-        for (const ivec2& offset : KERNEL_ALL_1) {
-            i++;
+        for (int i = 0; i < 8; i++) {
+            const ivec2& offset = KERNEL_ALL_1[i];
+
             FlowCell* cell = at(curCell->pos + offset);
             if (cell == nullptr || passedCells.contains(cell))
                 continue;
             if (cell->obstacle)
                 continue;
-            if (i > 3) { // diagonal 
+            if (i > 3) { // diagonal
                 // LOG("i:", i, curCell->pos);
                 if (at(curCell->pos + ivec2(offset.x, 0))->obstacle && at(curCell->pos + ivec2(0, offset.y))->obstacle) {
                     curCell->corner = true;
                     cell->corner = true;
                     continue;
                 }
-            } 
+            }
+            float nextDist = curCell->pfDist + (i > 3 ? 1.4142135623730951 : 1);
             if (nextDist >= cell->pfDist)
                 continue;
 
@@ -103,7 +104,7 @@ void FlowGrid::setPath(FlowCell* fromCell, FlowCell* toCell) {
 }
 
 void FlowGrid::reset () {
-    LOG_TIMER timer("FlowGrid::reset");
+    // LOG_TIMER timer("FlowGrid::reset");
     path.erase(path.begin(), path.end());
     for (auto& cell : cells) {
         cell.pfDist = 9999;
