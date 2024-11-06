@@ -1,6 +1,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstring>
+#include <exception>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -81,14 +82,15 @@ auto drawAliveAndClearDead = !DEBUG_PERF ? [](Boid* boid) {
     return false;
 };
 
-Order CreateOrder (BoidSelection selection, vec2 dest) {
-    Order order;
-    order.grid.init(gridSize);
-    FCell* fromCell = order.grid.at(ScreenToGrid(vec2{ selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 }));
-    FCell* destCell = order.grid.at(ScreenToGrid(dest));
-    order.grid.setFlowField(fromCell, destCell);
+OrderPtr CreateOrder (BoidSelection selection, vec2 dest) {
+    OrderPtr order = Order::create();
+    order->grid.init(gridSize);
+    LOG("grid.cells.size()", order->grid.cells.size());
+    FCell* fromCell = order->grid.at(ScreenToGrid(vec2{ selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 }));
+    FCell* destCell = order->grid.at(ScreenToGrid(dest));
+    order->grid.setFlowField(destCell, fromCell);
     for (Boid* boid : selection.boids)
-        boid->order = &order;
+        boid->order = order;
     return order;
 }
 
@@ -147,10 +149,17 @@ int main()
 
             // grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
 
-            Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
-            for (auto boid: boids) {
-                boid->update(boids, obstacles);
+            try {
+                Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
+                for (auto boid: boids) {
+                    boid->update(boids, obstacles);
+                }
+            } catch (const std::exception& e) {
+                // std::cerr << "\033[32mException caught: " << e.what() << "\033[0m" << std::endl;
+                LOG("\033[1;4;31mException caught: ", e.what(), "\033[0m");
+                break;
             }
+
             boids.erase(
                 remove_if(boids.begin(), boids.end(),
                     drawAliveAndClearDead),

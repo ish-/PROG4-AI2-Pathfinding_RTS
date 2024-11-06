@@ -52,7 +52,7 @@ public:
     Color color = WHITE;
     BoidClosest closestBoid;
 
-    Order* order = nullptr;
+    OrderPtr order = nullptr;
     bool selected = false;
 
     // Texture2D tex;

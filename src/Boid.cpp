@@ -16,6 +16,7 @@ static const float SEPARATE_DIST = 15.;
 static const float ALIGN_DIST = 170.;
 static const float FOLLOW_DIST = 200.;
 
+static const float ORDER_MULT = .8;
 static const float SEPARATE_MULT = 1.;
 static const float OBSTACLE_AVOID_MULT = 10.;
 static const float ALIGN_MULT = .3;
@@ -153,18 +154,25 @@ void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
     }
 
     // Vector2 followInfl = followClosest();
-    Vector2 orderInfl = vec2(order->grid.at(ivec2(pos / (vec2){1280,720}))->pfToStart);
 
     for (Obstacle* obstacle : obstacles)
         avoidInfl += avoid(obstacle);
 
-    Vector2 infl = Vector2{0,0}
+    vec2 infl = vec2{0,0}
         + Vector2Normalize(avoidInfl) * OBSTACLE_AVOID_MULT
         // + Vector2Normalize(alignInfl) * ALIGN_MULT
         + Vector2Normalize(separateInfl) * SEPARATE_MULT
         // + Vector2Normalize(seekInfl)
         // + Vector2Normalize(followInfl) * FOLLOW_MULT
     ;
+
+    if (order) {
+      vec2 gridCoordf = vec2(pos / (vec2){1280.,720.}) * order->grid.size;
+      ivec2 gridCoord = ivec2(floor(gridCoordf.x), floor(gridCoordf.y));
+
+      if (FlowCell* cell = order->grid.at(gridCoord))
+        infl -= (cell->pfToStart * ORDER_MULT);
+    }
 
     //acc = infl - vel;
     //vel += acc;

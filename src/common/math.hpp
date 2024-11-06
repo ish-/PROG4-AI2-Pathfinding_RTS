@@ -17,7 +17,7 @@ struct ivec2 {
     ivec2 operator+(const ivec2& v) const { return ivec2(x + v.x, y + v.y); }
     vec2 operator+(const vec2& v) const { return vec2(x + v.x, y + v.y); }
 
-    ivec2 operator*(const int& scalar) const { return ivec2(x * scalar, y * scalar); }
+    // ivec2 operator*(const int& scalar) const { return ivec2(x * scalar, y * scalar); }
     template <typename T = float>
     vec2 operator*(const T& scalar) const { return vec2(x * scalar, y * scalar); }
 
@@ -27,31 +27,42 @@ struct ivec2 {
 };
 
 inline vec2 operator+ (const vec2& v1, const vec2& v2) { return vec2(v1.x + v2.x, v1.y + v2.y); }
-inline Vector2 operator+=(Vector2& a, const Vector2& b) {
+template <typename T = vec2>
+inline vec2 operator+=(vec2& a, const T& b) {
     a.x += b.x;
     a.y += b.y;
     return a;
 }
-inline Vector2 operator*=(Vector2& a, const float i) {
+template <typename T = vec2>
+inline vec2 operator-=(vec2& a, const T& b) {
+    a.x -= b.x;
+    a.y -= b.y;
+    return a;
+}
+inline vec2 operator*=(vec2& a, const float i) {
     a.x *= i;
     a.y *= i;
     return a;
 }
-inline Vector2 operator-(const Vector2& a, const Vector2& b) {
-    return Vector2{a.x - b.x, a.y - b.y};
+inline vec2 operator-(const vec2& a, const vec2& b) {
+    return vec2{a.x - b.x, a.y - b.y};
 }
-inline Vector2 operator*(const Vector2& a, const float i) {
-    return Vector2Multiply(a, Vector2{ i,i });
+inline vec2 operator*(const vec2& a, const float i) {
+    return Vector2Multiply(a, vec2{ i,i });
 }
-inline Vector2 operator/(const Vector2& a, const float i) {
-    return Vector2Divide(a, Vector2{ i,i });
+inline vec2 operator/(const vec2& a, const float i) {
+    return Vector2Divide(a, vec2{ i,i });
 }
-inline Vector2 operator/(const Vector2& a, const Vector2& b) {
+inline vec2 operator/(const vec2& a, const vec2& b) {
     return Vector2Divide(a, b);
 }
-inline Vector2 operator ivec2(const Vector2& a) {
-    return ivec2(int(a.x), int(a.y));
+template <typename T = vec2>
+inline vec2 operator*(const vec2& a, const T& b) {
+    return vec2({ a.x * b.x, a.y * b.y});
 }
+// inline Vector2 operator ivec2(const Vector2& a) {
+//     return ivec2(int(a.x), int(a.y));
+// }
 
 inline float mapRange(float x, float in_min, float in_max, float out_min, float out_max) {
     return out_min + (x - in_min) * (out_max - out_min) / (in_max - in_min);

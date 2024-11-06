@@ -21,6 +21,10 @@ public:
     Grid ();
     Grid (const ivec2& size);
 
+    ~Grid () {
+        LOG("~Grid()");
+    }
+
     void init (const ivec2& size);
 
     TCell* at (const ivec2& pos);
@@ -29,7 +33,9 @@ public:
 };
 
 template <typename TCell>
-Grid<TCell>::Grid () {}
+Grid<TCell>::Grid () {
+    LOG("Grid()");
+}
 
 template <typename TCell>
 Grid<TCell>::Grid (const ivec2& size) {
@@ -38,6 +44,7 @@ Grid<TCell>::Grid (const ivec2& size) {
 
 template <typename TCell>
 void Grid<TCell>::init (const ivec2& size) {
+    LOG("Grid()", size);
     this->size = size;
 
     int length = size.x * size.y;
