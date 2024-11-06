@@ -37,6 +37,7 @@ void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
         }
 
         vec2 pos {cell.pos.x * cellSize.x, cell.pos.y * cellSize.y};
+        fillColor.a = 100;
         DrawRectangle(pos.x, pos.y, cellSize.x, cellSize.y, fillColor);
         // DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
         // DrawText(TextFormat("%.1f,%.1f", cell.pfToStart.x, cell.pfToStart.y), pos.x + 2, pos.y + 2, 11, BLACK);

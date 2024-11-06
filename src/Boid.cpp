@@ -16,7 +16,7 @@ static const float SEPARATE_DIST = 15.;
 static const float ALIGN_DIST = 170.;
 static const float FOLLOW_DIST = 200.;
 
-static const float ORDER_MULT = .8;
+static const float ORDER_MULT = .3;
 static const float SEPARATE_MULT = 1.;
 static const float OBSTACLE_AVOID_MULT = 10.;
 static const float ALIGN_MULT = .3;
@@ -34,17 +34,14 @@ vector<int> Boid::scores {0,0,0,0,0,0,0,0,0};
 
 Vector2 nullVec2 = Vector2{0,0};
 
-Obstacle::Obstacle(float x, float y, float _size) {
-    size = _size;
-    pos = Vector2{ x, y };
-    boundingRect = Rectangle{ pos.x - margin, pos.y - margin, size + margin * 2, size + margin * 2 };
+Obstacle::Obstacle(const Rectangle& rect): rect{rect} {
 }
 
 void Obstacle::draw() {
-    DrawRectangleLines(pos.x, pos.y, size, size, touched ? YELLOW : GRAY);
+    DrawRectangleLines(rect.x, rect.y, rect.width, rect.height, touched ? YELLOW : GRAY);
     Color fill = YELLOW;
     fill.a = touched;
-    DrawRectangle(pos.x, pos.y, size, size, fill);
+    DrawRectangle(rect.x, rect.y, rect.width, rect.height, fill);
 
     touched = std::max(0., touched - 255. / 60.);
 }
@@ -115,8 +112,9 @@ Vector2 Boid::seek(Vector2& p, float& dir) const {
 
 Vector2 Boid::avoid(Obstacle* obstacle) const {
     Vector2 infl{0,0};
-    if (CheckCollisionCircleRec(pos, size, obstacle->boundingRect)) {
-        Vector2 to = pos - (obstacle->pos + Vector2{ obstacle->size, obstacle->size } / 2);
+    if (CheckCollisionCircleRec(pos, size, obstacle->rect)) {
+        vec2 obstacleCenter = vec2{obstacle->rect.x + obstacle->rect.width/2, obstacle->rect.y + obstacle->rect.height/2};
+        Vector2 to = pos - obstacleCenter;
         obstacle->touched = min(255., obstacle->touched + 10.);
         return Vector2Normalize(to);
     }

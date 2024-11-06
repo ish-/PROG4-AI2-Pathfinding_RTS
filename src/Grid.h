@@ -15,6 +15,13 @@ struct GridCell {
 template <typename TCell = GridCell>
 class Grid {
 public:
+    ivec2 toCoord (vec2 cellSize, vec2 pos) {
+        return ivec2 {
+            std::clamp(int(pos.x / cellSize.x), 0, size.x),
+            std::clamp(int(pos.y / cellSize.y), 0, size.y)
+        };
+    }
+
     ivec2 size;
     std::vector<TCell> cells;
 

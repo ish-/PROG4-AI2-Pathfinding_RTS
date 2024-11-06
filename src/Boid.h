@@ -13,19 +13,17 @@ using namespace std;
 static const bool DEBUG_PERF = false;
 static const int BOIDS_COUNT = 300;
 static const int GROUPS_COUNT = 3;
-static const int OBSTACLES_COUNT = 10;
+static const int OBSTACLES_COUNT = 40;
 static const int W = 1280;
 static const int H = 720;
 
 class Obstacle {
 public:
-    Vector2 pos{ 0,0 };
-    float size = 100.;
+    Rectangle rect;
     float margin = 10.;
-    Rectangle boundingRect;
     float touched = 0.;
 
-    Obstacle(float x, float y, float _size = 100.);
+    Obstacle(const Rectangle& rect);
 
     void draw();
 };

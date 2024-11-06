@@ -51,11 +51,8 @@ FCell* lastHoverCell;
 FCell* hoverCell;
 FCell* destinationCell;
 FCell* GetHoverCell (vec2 pos);
-ivec2 ScreenToGrid (vec2 pos);
 void SetDestination (FCell* hoverCell);
-void SetObstacles ();
-
-std::array<Rectangle, 40> obstacleRects;
+void CreateObstacles ();
 
 BoidSelection selection;
 
@@ -84,11 +81,30 @@ auto drawAliveAndClearDead = !DEBUG_PERF ? [](Boid* boid) {
 
 OrderPtr CreateOrder (BoidSelection selection, vec2 dest) {
     OrderPtr order = Order::create();
-    order->grid.init(gridSize);
-    LOG("grid.cells.size()", order->grid.cells.size());
-    FCell* fromCell = order->grid.at(ScreenToGrid(vec2{ selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 }));
-    FCell* destCell = order->grid.at(ScreenToGrid(dest));
-    order->grid.setFlowField(destCell, fromCell);
+    FGrid& grid = order->grid;
+    grid.init(gridSize);
+
+    for (auto& cell : grid.cells) {
+        Rectangle cellRect = {
+            cell.pos.x * cellSize.x,
+            cell.pos.y * cellSize.y,
+            cellSize.x,
+            cellSize.y,
+        };
+        for (int i = 0; i < OBSTACLES_COUNT; i++) {
+            Obstacle* obstacle = obstacles[i];
+            cell.obstacle = AABBCollision(obstacle->rect, cellRect);
+            // LOG("cell.obstacle", cell.obstacle);
+            if (cell.obstacle)
+                break;
+        }
+    }
+
+    ivec2 fromCellCoord = grid.toCoord(cellSize, { selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 });
+    FCell* fromCell = grid.at(fromCellCoord);
+    FCell* destCell = grid.at(grid.toCoord(cellSize, dest));
+    grid.setFlowField(destCell, fromCell);
+
     for (Boid* boid : selection.boids)
         boid->order = order;
     return order;
@@ -103,7 +119,7 @@ int main()
     SetTargetFPS(FPS);
     ClearBackground(BLACK);
 
-    SetObstacles();
+    CreateObstacles();
     CreateBoids();
 
     double frameTime = 0.;
@@ -147,8 +163,6 @@ int main()
         BeginDrawing();
             ClearBackground(BLACK);
 
-            // grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
-
             try {
                 Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
                 for (auto boid: boids) {
@@ -169,7 +183,11 @@ int main()
             if (selection.active)
                 selection.draw();
 
+            for (auto* obstacle : obstacles)
+                obstacle->draw();
+
             if (showDebug) {
+                Order::orders[Order::i-1]->grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
                 DrawText(TextFormat("%i fps", GetFPS()), 20, 20, 30, DEBUG_COLOR);
                 if (hoverCell)
                     DrawText(TextFormat("hoverCell: %i : %i", hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, DEBUG_COLOR);
@@ -195,32 +213,19 @@ ivec2 ScreenToGrid (vec2 pos) {
 
 FCell* GetHoverCell (vec2 pos) {
     if (0 < pos.x && pos.x < wSize.x && 0 < pos.y && pos.y < wSize.y) {
-        return grid.at(ScreenToGrid(pos));
+        return grid.at(grid.toCoord(cellSize, pos));
     }
     return nullptr;
 }
 
-void SetObstacles () {
-    for (auto& rect : obstacleRects) {
-        rect.x = std::lerp(-100, wSize.x, randf());
-        rect.y = std::lerp(-100, wSize.y, randf());
-        rect.width = std::lerp(50, 150, randf());
-        rect.height = std::lerp(50, 150, randf());
-    }
-
-    for (auto& cell : grid.cells) {
-        Rectangle cellRect = {
-            cell.pos.x * cellSize.x,
-            cell.pos.y * cellSize.y,
-            cellSize.x,
-            cellSize.y,
-        };
-        for (int i = 0; i < obstacleRects.size(); i++) {
-            Rectangle obstr = obstacleRects[i];
-            cell.obstacle = AABBCollision(obstr, cellRect);
-            if (cell.obstacle)
-                break;
-        }
+void CreateObstacles () {
+    for (int i = 0; i < OBSTACLES_COUNT; i++) {
+        obstacles.push_back(new Obstacle({
+            std::lerp(-100.f, wSize.x, randf()),
+            std::lerp(-100.f, wSize.y, randf()),
+            std::lerp(50.f, 150.f, randf()),
+            std::lerp(50.f, 150.f, randf())
+        }));
     }
 }
 
