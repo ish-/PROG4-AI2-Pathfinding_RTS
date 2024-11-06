@@ -15,8 +15,8 @@
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
 #include "Selection.hpp"
+// #include "Order.hpp"
 #include "Boid.h"
-#include "Order.hpp"
 
 Config CONF;
 float FPS = 120.f;
@@ -29,7 +29,7 @@ Vector2 cellSize = { wSize.x / gridSize.x, wSize.y / gridSize.y };
 Color DEBUG_COLOR = WHITE;
 
 bool showDebug;
-Vector2 mousePos {wSize.x/2,wSize.y/2};
+Vector2 pointerPos {wSize.x/2,wSize.y/2};
 float mouseZ = 0;
 int frame = 0;
 double now = 0;
@@ -39,11 +39,12 @@ using FGrid = FlowGrid;
 using FCell = FlowCell;
 FGrid grid (gridSize);
 
-Vector2& pointer = mousePos;
+Vector2& pointer = pointerPos;
 StateChangeDetector fullscreenBtn;
 StateChangeDetector reloadConfigBtn;
 StateChangeDetector showDebugBtn;
 StateChangeDetector pointerActBtn;
+StateChangeDetector pointerCtxBtn;
 
 FCell* lastHoverCell;
 FCell* hoverCell;
@@ -81,10 +82,13 @@ auto drawAliveAndClearDead = !DEBUG_PERF ? [](Boid* boid) {
 };
 
 Order CreateOrder (BoidSelection selection, vec2 dest) {
-    Order order(selection);
+    Order order;
+    order.grid.init(gridSize);
     FCell* fromCell = order.grid.at(ScreenToGrid(vec2{ selection.rect.x + selection.rect.width/2, selection.rect.y + selection.rect.height/2 }));
     FCell* destCell = order.grid.at(ScreenToGrid(dest));
     order.grid.setFlowField(fromCell, destCell);
+    for (Boid* boid : selection.boids)
+        boid->order = &order;
     return order;
 }
 
@@ -105,25 +109,30 @@ int main()
         now = GetTime(); frame++;
         delta = GetFrameTime();
 
-        mousePos = GetMousePosition();
+        pointerPos = GetMousePosition();
         mouseZ = IsMouseButtonDown(0) ? 1 : (IsMouseButtonDown(1) ? -1 : 0);
 
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
             showDebug = !showDebug;
 
-        hoverCell = GetHoverCell(mousePos);
+        hoverCell = GetHoverCell(pointerPos);
 
 
         bool pointerActBtnChanged = pointerActBtn.hasChanged(IsMouseButtonDown(0));
         if (pointerActBtnChanged) {
             if (pointerActBtn.state) {
                 SetDestination(hoverCell);
-                selection.start(mousePos);
+                selection.start(pointerPos);
             } else {
-                selection.stop(mousePos, boids);
+                selection.stop(pointerPos, boids);
             }
         } else if (pointerActBtn.state) {
-            selection.update(mousePos);
+            selection.update(pointerPos);
+        }
+
+        if (pointerCtxBtn.hasChanged(IsMouseButtonDown(1))) {
+            if (pointerCtxBtn.state)
+                CreateOrder(selection, pointerPos);
         }
 
         // LOG_TIMER timer("FlowGrid.setFlowField", true);

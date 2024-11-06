@@ -1,17 +1,15 @@
 #pragma once
 
 #include "FlowGrid.h"
-#include "Selection.hpp"
 
 class Order {
 public:
+  static int i;
+
   FlowGrid grid;
   int id;
 
-  Order(BoidSelection selection) {
-      id = i++;
+  Order() {
+    this->id = i++;
   }
-  static int i;
 };
-
-int Order::i = 0;

@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "raymath.h"
 // #include "Obstacle.h"
+#include "Order.hpp"
 
 using namespace std;
 
@@ -51,7 +52,7 @@ public:
     Color color = WHITE;
     BoidClosest closestBoid;
 
-    bool order = false;
+    Order* order = nullptr;
     bool selected = false;
 
     // Texture2D tex;

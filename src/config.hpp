@@ -42,4 +42,5 @@ inline Config LoadConfig () {
     }
 
     configJsonFile.close();
+    return Config();
 }

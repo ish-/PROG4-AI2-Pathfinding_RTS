@@ -46,6 +46,12 @@ inline Vector2 operator*(const Vector2& a, const float i) {
 inline Vector2 operator/(const Vector2& a, const float i) {
     return Vector2Divide(a, Vector2{ i,i });
 }
+inline Vector2 operator/(const Vector2& a, const Vector2& b) {
+    return Vector2Divide(a, b);
+}
+inline Vector2 operator ivec2(const Vector2& a) {
+    return ivec2(int(a.x), int(a.y));
+}
 
 inline float mapRange(float x, float in_min, float in_max, float out_min, float out_max) {
     return out_min + (x - in_min) * (out_max - out_min) / (in_max - in_min);

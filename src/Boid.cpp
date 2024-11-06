@@ -1,11 +1,12 @@
-#include "Boid.h"
-#include "common/math.hpp"
-#include "raylib.h"
-
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "raylib.h"
 
+#include "common/math.hpp"
 #include "config.hpp"
+
+#include "Boid.h"
+
 // #include "Obstacle.h"
 
 static const float MAX_SPEED = 1.;
@@ -152,6 +153,7 @@ void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
     }
 
     // Vector2 followInfl = followClosest();
+    Vector2 orderInfl = vec2(order->grid.at(ivec2(pos / (vec2){1280,720}))->pfToStart);
 
     for (Obstacle* obstacle : obstacles)
         avoidInfl += avoid(obstacle);

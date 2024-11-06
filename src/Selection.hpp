@@ -1,10 +1,10 @@
 #pragma once
 #include <vector>
+#include "raylib.h"
 
 #include "common/math.hpp"
 #include "common/log.hpp"
 #include "Boid.h"
-#include "raylib.h"
 
 class Selection {
 public:
