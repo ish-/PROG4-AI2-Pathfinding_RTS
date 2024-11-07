@@ -187,7 +187,8 @@ int main()
                 obstacle->draw();
 
             if (showDebug) {
-                Order::orders[Order::i-1]->grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
+                if (Order::i > 0)
+                    Order::orders[Order::i-1]->grid.draw({0,0,wSize.x,wSize.y}, hoverCell);
                 DrawText(TextFormat("%i fps", GetFPS()), 20, 20, 30, DEBUG_COLOR);
                 if (hoverCell)
                     DrawText(TextFormat("hoverCell: %i : %i", hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, DEBUG_COLOR);
@@ -219,13 +220,17 @@ FCell* GetHoverCell (vec2 pos) {
 }
 
 void CreateObstacles () {
+    float thickness = 30;
+    bool flipFlop = false;
     for (int i = 0; i < OBSTACLES_COUNT; i++) {
+        float length = std::lerp(50.f, 200.f, randf());
         obstacles.push_back(new Obstacle({
             std::lerp(-100.f, wSize.x, randf()),
             std::lerp(-100.f, wSize.y, randf()),
-            std::lerp(50.f, 150.f, randf()),
-            std::lerp(50.f, 150.f, randf())
+            flipFlop ? thickness : length,
+            flipFlop ? length : thickness,
         }));
+        flipFlop = !flipFlop;
     }
 }
 

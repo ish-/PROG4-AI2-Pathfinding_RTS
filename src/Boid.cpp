@@ -18,7 +18,7 @@ static const float FOLLOW_DIST = 200.;
 
 static const float ORDER_MULT = .3;
 static const float SEPARATE_MULT = 1.;
-static const float OBSTACLE_AVOID_MULT = 10.;
+static const float OBSTACLE_AVOID_MULT = 1.;
 static const float ALIGN_MULT = .3;
 static const float FOLLOW_MULT = .8;
 static const float SEEK_MULT = 5.;
