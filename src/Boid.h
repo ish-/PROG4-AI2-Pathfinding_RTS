@@ -1,11 +1,10 @@
 #pragma once
 
 #include <vector>
-#include "raylib.h"
+#include <raylib.h>
+#include <raymath.h>
+
 #include "common/math.hpp"
-#include "raylib.h"
-#include "raymath.h"
-// #include "Obstacle.h"
 #include "Order.hpp"
 
 using namespace std;
