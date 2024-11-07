@@ -80,7 +80,7 @@ auto drawAliveAndClearDead = !DEBUG_PERF ? [](Boid* boid) {
 };
 
 OrderPtr CreateOrder (BoidSelection selection, vec2 dest) {
-    OrderPtr order = Order::create(selection);
+    OrderPtr order = Order::create();
     FGrid& grid = order->grid;
     grid.init(gridSize);
 

@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "FlowGrid.h"
-#include "Selection.hpp"
 #include "common/log.hpp"
 
 class Order;
@@ -14,17 +13,16 @@ public:
   static int i;
   static std::unordered_map<int, OrderPtr> orders;
 
-  static OrderPtr create (BoidSelection& selection) {
-    OrderPtr order = std::make_shared<Order>(selection);
+  static OrderPtr create () {
+    OrderPtr order = std::make_shared<Order>();
     orders[order->id] = order;
     return order;
   }
 
   FlowGrid grid;
-  BoidSelection& selection;
   int id;
 
-  Order(BoidSelection& selection): selection(selection), id(i++) {
+  Order(): id(i++) {
     LOG("Order()");
   }
 
