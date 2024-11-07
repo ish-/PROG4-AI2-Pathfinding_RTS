@@ -1,8 +1,11 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "raylib.h"
+
+#include <raylib.h>
+#include <raymath.h>
 
 #include "common/math.hpp"
+#include "common/log.hpp"
 #include "config.hpp"
 
 #include "Boid.h"
@@ -10,9 +13,10 @@
 // #include "Obstacle.h"
 
 static const float MAX_SPEED = 1.;
+static const float SPEED = 60. * 2.;
 static const float HIT_HP = .41;
 
-static const float SEPARATE_DIST = 15.;
+static const float SEPARATE_DIST = 10.;
 static const float ALIGN_DIST = 170.;
 static const float FOLLOW_DIST = 200.;
 
@@ -97,7 +101,9 @@ Vector2 Boid::followClosest() const {
 }
 
 Vector2 Boid::separate(Boid* boid, float& dist, Vector2& dir) const {
-    if (boid->group == this->group || boid->group != (GROUPS_COUNT + group - 1) % GROUPS_COUNT) {
+    // if (!hasOrder() && boid->hasOrder())
+    // if (boid->group == this->group || boid->group != (GROUPS_COUNT + group - 1) % GROUPS_COUNT)
+    {
         if (dist < SEPARATE_DIST) {
             return dir * -1.f;
         }
@@ -131,7 +137,7 @@ Vector2 Boid::align(Boid* boid, float& dist, Vector2& dir) const {
 }
 
 // void Boid::update(vector<Boid*> boids, vector<Obstacle*> obstacles, Vector2& mouse, float& mouseZ) {
-void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
+void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
     closestBoid = {9999., nullptr };
     Vector2 avoidInfl{0,0};
     Vector2 alignInfl{0,0};
@@ -146,8 +152,8 @@ void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
         float dist = Vector2Length(to);
         Vector2 dir = Vector2Normalize(to);
 
-        updateClosest(boid, dist, dir);
-        alignInfl += align(boid, dist, dir);
+        // updateClosest(boid, dist, dir);
+        // alignInfl += align(boid, dist, dir);
         separateInfl += separate(boid, dist, dir);
     }
 
@@ -165,21 +171,24 @@ void Boid::update(vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
     ;
 
     if (order) {
-      vec2 gridCoordf = vec2(pos / (vec2){1280.,720.}) * order->grid.size;
-      ivec2 gridCoord = ivec2(floor(gridCoordf.x), floor(gridCoordf.y));
-
-      if (FlowCell* cell = order->grid.at(gridCoord))
-        infl -= (cell->pfToStart * ORDER_MULT);
+        float dist = Vector2Length(order->getDestination() - pos);
+        if (dist < 30.)
+            order.reset();
+        else {
+            vec2 orderDir = order->getDir(pos);
+            // LOG("orderDir", dist, orderDir);
+            infl -= (orderDir * ORDER_MULT);
+        }
     }
 
     //acc = infl - vel;
     //vel += acc;
     vel += infl * ALL_INFL_MULT;
     vel = Vector2ClampValue(vel, -MAX_SPEED, MAX_SPEED);
-    if (!order)
-      vel *= .99;
+    // if (!order)
+      vel *= .95;
     checkBoudariesAndReflect();
-    pos += vel;
+    pos += vel * float(delta) * SPEED;
 
     // if ((hp -= .001) < 0.)
     //     isAlive = false;
@@ -195,3 +204,5 @@ void Boid::draw() const {
     }
     DrawPoly(pos, 3, 8, angle, COLORS[group]);
 }
+
+bool Boid::hasOrder () const { return orderVel.x != 0 || orderVel.y != 0; }

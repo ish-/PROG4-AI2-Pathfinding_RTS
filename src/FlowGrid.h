@@ -6,10 +6,15 @@
 #include <raylib.h>
 #include <raymath.h>
 
-#include "Grid.h"
 #include "common/math.hpp"
+#include "Grid.h"
 
-// using vec2 = Vector2;
+using namespace std;
+
+class IPathfind {
+public:
+  virtual vec2 getDir (vec2& pos) = 0;
+};
 
 struct FlowCell : GridCell {
     float pfDist = 9999;
@@ -27,17 +32,25 @@ struct FlowCell : GridCell {
     // }
 };
 
-class FlowGrid : public Grid<FlowCell> {
+class FlowGrid : public Grid<FlowCell>, public IPathfind {
 public:
+    static ivec2 SIZE;
+    static vec2 CELL_SIZE;
+
     std::vector<FlowCell*> path;
 
-    FlowGrid () : Grid() {};
-    FlowGrid (ivec2& size) : Grid(size) {};
+    FlowGrid () : Grid(FlowGrid::SIZE, FlowGrid::CELL_SIZE) {};
+    FlowGrid (ivec2& size, vec2& cellSize)
+        : Grid(size, cellSize) {};
 
     void setFlowField(FlowCell* fromCell, FlowCell* toCell);
     void setPath(FlowCell* fromCell, FlowCell* toCell);
 
-    void draw (const Rectangle& rect,  FlowCell* hoverCell);
+    void draw (const Rectangle& rect/*,  FlowCell* hoverCell*/);
+
+    vec2 getDir (vec2& pos);
+
+    // void setObstacles (vector<Obstacle*>& obstacles);
 
     void reset ();
 

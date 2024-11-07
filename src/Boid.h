@@ -1,17 +1,17 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "raylib.h"
-#include "common/math.hpp"
-#include "raylib.h"
 #include "raymath.h"
+
+#include "common/math.hpp"
 // #include "Obstacle.h"
-#include "Order.hpp"
 
 using namespace std;
 
 static const bool DEBUG_PERF = false;
-static const int BOIDS_COUNT = 300;
+static const int BOIDS_COUNT = 500;
 static const int GROUPS_COUNT = 3;
 static const int OBSTACLES_COUNT = 40;
 static const int W = 1280;
@@ -26,6 +26,12 @@ public:
     Obstacle(const Rectangle& rect);
 
     void draw();
+};
+
+class IBoidMoveOrder {
+public:
+    virtual vec2 getDir(Vector2& pos) = 0;
+    virtual vec2 getDestination () = 0;
 };
 
 class Boid;
@@ -50,11 +56,14 @@ public:
     Color color = WHITE;
     BoidClosest closestBoid;
 
-    OrderPtr order = nullptr;
+    vec2 orderVel;
+    shared_ptr<IBoidMoveOrder> order;
     bool selected = false;
 
     // Texture2D tex;
     // Rectangle texRect;
+
+    bool hasOrder () const;
 
     Boid(Vector2 _pos, Vector2 _vel, int _group/*, Texture2D _tex*/);
 
@@ -77,6 +86,7 @@ public:
     Vector2 avoid(Obstacle* obstacle) const;
 
     void update(
+        double delta,
         vector<Boid*>& boids,
         vector<Obstacle*>& obstacles
     );

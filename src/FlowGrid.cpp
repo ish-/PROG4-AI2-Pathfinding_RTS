@@ -11,15 +11,18 @@
 
 Color CELL_HOVER_COLOR = ORANGE;
 
-void FlowGrid::draw (const Rectangle& rect, FlowCell* hoverCell) {
+ivec2 FlowGrid::SIZE = ivec2(16, 9);
+vec2 FlowGrid::CELL_SIZE = vec2(1280./16., 720./9.);
+
+void FlowGrid::draw (const Rectangle& rect/*, FlowCell* hoverCell*/) {
     Vector2 cellSize = { rect.width / this->size.x, rect.height / this->size.y };
 
     for (const FlowCell& cell : this->cells) {
         Color fillColor = WHITE;
         Color borderColor = BLUE;
-        if (&cell == hoverCell) {
+        /*if (&cell == hoverCell) {
             fillColor = CELL_HOVER_COLOR;
-        } else if (cell.obstacle) {
+        } else*/ if (cell.obstacle) {
             fillColor = BLACK;
         } else {
             // float lightness = (1. - std::max(0., 20. - cell.pfDist) / 20.) * 255;
@@ -117,3 +120,20 @@ void FlowGrid::reset () {
     passedCells.erase(passedCells.begin(), passedCells.end());
     while (!queueCells.empty()) queueCells.pop();
 }
+
+vec2 FlowGrid::getDir (vec2& pos) {
+    vec2 gridCoord = pos / cellSize;
+    FlowCell* cell = at(gridCoord.x, gridCoord.y);
+    if (cell == nullptr)
+        return {0,0};
+    return cell->pfToStart;
+}
+
+// void FlowGrid::setObstacles (vector<Obstacle*>& obstacles) {
+//     for (Obstacle* obstacle : obstacles) {
+//         Rectangle gridObstacleRect = obstacle->rect / cellSize;
+//         for (Cell* cell : atRect(gridObstacleRect)) {
+//             cell->obstacle = true;
+//         }
+//     }
+// }

@@ -6,6 +6,7 @@
 #include "common/log.hpp"
 #include "Boid.h"
 
+template <typename TItem>
 class Selection {
 public:
     bool active;
@@ -13,12 +14,14 @@ public:
     vec2 to;
     Rectangle rect;
 
-    void start (vec2& _from) {
+    vector<TItem*> items;
+
+    void start (vec2 _from) {
         reset();
         active = true;
         from = _from;
     }
-    void update (vec2& _to) {
+    void update (vec2 _to) {
         to = _to;
 
         float fromX = std::min(from.x, to.x);
@@ -27,7 +30,7 @@ public:
         float toY = std::max(from.y, to.y);
         rect = { fromX, fromY, toX - fromX, toY - fromY };
     }
-    void stop (vec2& to) {
+    void stop (vec2 to) {
         update(to);
         active = false;
     }
@@ -47,10 +50,8 @@ public:
     }
 };
 
-class BoidSelection: public Selection {
+class BoidSelection: public Selection<Boid> {
 public:
-    vector<Boid*> boids;
-
     void stop (vec2& _to, std::vector<Boid*>& boids) {
         Selection::stop(to);
 
@@ -58,17 +59,17 @@ public:
             Rectangle boidRect = { boid->pos.x - boid->size/2, boid->pos.y - boid->size/2, boid->size, boid->size };
             if (AABBCollision(this->rect, boidRect)) {
                 boid->selected = true;
-                this->boids.push_back(boid);
+                this->items.push_back(boid);
             }
         }
     }
 
     void reset () override {
         Selection::reset();
-        for (Boid* boid: this->boids) {
+        for (Boid* boid: this->items) {
             boid->selected = false;
         }
-        boids.erase(boids.begin(), boids.end());
-        LOG("BoidSelection::reset", boids.size());
+        items.erase(items.begin(), items.end());
+        LOG("BoidSelection::reset", items.size());
     }
 };

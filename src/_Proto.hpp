@@ -23,17 +23,17 @@ public:
   Cell* at (vec2& pos);
 
   vector<Cell*> atRect(Rectangle& rect) {
-    vector<Cell*> cells;
+    vector<Cell*> _cells;
     int toX = rect.x + rect.width + 1;
     int toY = rect.y + rect.height + 1;
-    cells.reserve((toX - rect.x) * (toY - rect.y));
+    _cells.reserve((toX - rect.x) * (toY - rect.y));
 
     for (int x = rect.x; x < rect.x + rect.width + 1; x++) {
       for (int y = rect.y; y < rect.y + rect.height + 1; y++) {
-        cells.push_back(at(x, y));
+        _cells.push_back(at(x, y));
       }
     }
-    return cells;
+    return _cells;
   }
 
   vector<Cell*> atRadius (vec2 pos, float radius) {
@@ -100,7 +100,7 @@ public:
   int id;
   vec2& to;
   Selection<Boid>& selection;
-  PathfindGrid pathfinder;
+  // PathfindGrid pathfinder;
 
   MoveOrder (vec2& to, Selection<Boid>& selection)
     : to(to), selection(selection) {};

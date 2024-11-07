@@ -1,5 +1,4 @@
 #include "Order.hpp"
 
-int Order::i = 0;
-
-std::unordered_map<int, OrderPtr> Order::orders;
+float MoveOrder::DONE_DIST_SQR = 20 * 20;
+int MoveOrder::MoveOrder_i = 0;
