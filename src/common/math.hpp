@@ -21,6 +21,8 @@ struct ivec2 {
     template <typename T = float>
     vec2 operator*(const T& scalar) const { return vec2(x * scalar, y * scalar); }
 
+    operator vec2() const { return vec2(x, y); }
+
     operator std::string() const {
         return "ivec2(" + std::to_string(x) + ", " + std::to_string(y) + ")";
     }
@@ -59,6 +61,10 @@ inline vec2 operator/(const vec2& a, const vec2& b) {
 template <typename T = vec2>
 inline vec2 operator*(const vec2& a, const T& b) {
     return vec2({ a.x * b.x, a.y * b.y});
+}
+template <typename T = vec2>
+inline Rectangle operator/(const Rectangle& r, const T& v) {
+    return { r.x / v.x, r.y / v.y, r.width / v.x, r.height / v.y };
 }
 // inline Vector2 operator ivec2(const Vector2& a) {
 //     return ivec2(int(a.x), int(a.y));
