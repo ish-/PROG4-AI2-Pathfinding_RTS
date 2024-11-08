@@ -102,3 +102,8 @@ inline std::ostream& operator<<(std::ostream& os, const ivec2& v) {
   os << "ivec2(" << v.x << ", " << v.y << ")";
   return os;
 }
+
+template <typename T>
+Color toRlColor (T& c) {
+    return Color{static_cast<unsigned char>(c[0]*255.), static_cast<unsigned char>(c[1]*255.), static_cast<unsigned char>(c[2]*255.), static_cast<unsigned char>(c[3]*255.)};
+}

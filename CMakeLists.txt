@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 project(AI2_pathfinding VERSION 1.0)
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -58,6 +59,14 @@ add_custom_target(copy_resources ALL
     DEPENDS ${RESOURCE_FILES}
     COMMENT "Copying resource files to build directory"
 )
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_custom_target(symlink_config ALL
+        COMMAND ${CMAKE_COMMAND} -E rm resources/config.json
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ../../src/config.json resources/config.json
+        COMMENT "Symlinking config.json"
+    )
+endif()
 
 # !!!!!! -- LIBS
 include(FetchContent)

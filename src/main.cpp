@@ -18,15 +18,12 @@
 #include "Order.hpp"
 #include "Boid.h"
 
-Config CONF;
-float FPS = 120.f;
+float FPS = 60.f;
 float FRAME_TIME = 1. / FPS;
 Vector2 wSize {1280, 720};
 Vector2 wRatio { 16, 9 };
 static ivec2 gridSize { (int)wRatio.x*6, (int)wRatio.y*6 };
 static Vector2 cellSize = { wSize.x / gridSize.x, wSize.y / gridSize.y };
-// Color CELL_HOVER_COLOR = ORANGE;
-Color DEBUG_COLOR = WHITE;
 
 bool showDebug;
 Vector2 pointerPos {wSize.x/2,wSize.y/2};
@@ -55,8 +52,8 @@ int main()
     FlowGrid::CELL_SIZE = cellSize;
     FlowGrid::SIZE = gridSize;
 
-    CONF = LoadConfig();
-    printf("Config version: %s\n", CONF.version.c_str());
+    LoadConfig();
+    LOG("Config version", CONF.version);
 
     InitWindow(wSize.x, wSize.y, "AI2-pathfinding-rts");
     SetTargetFPS(FPS);
@@ -73,11 +70,13 @@ int main()
         pointerPos = GetMousePosition();
         mouseZ = IsMouseButtonDown(0) ? 1 : (IsMouseButtonDown(1) ? -1 : 0);
 
+        if (reloadConfigBtn.hasChangedOn(IsKeyPressed(KEY_R)))
+            LoadConfig();
+
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
             showDebug = !showDebug;
 
-        bool pointerActBtnChanged = pointerActBtn.hasChanged(IsMouseButtonDown(0));
-        if (pointerActBtnChanged) {
+        if (pointerActBtn.hasChanged(IsMouseButtonDown(0))) {
             if (pointerActBtn.state) {
                 selection.start(pointerPos);
             } else {
@@ -92,16 +91,7 @@ int main()
                 moveOrderManager.create(selection.items, pointerPos, obstacles);
         }
 
-        if (frame % 60 == 0) {
-            moveOrderManager.orders.erase(
-                remove_if(moveOrderManager.orders.begin(), moveOrderManager.orders.end(),
-                    [](auto& order) {
-                        return order.expired();
-                    }),
-                moveOrderManager.orders.end()
-            );
-
-        }
+        moveOrderManager.clear();
 
         BeginDrawing();
             ClearBackground(BLACK);
@@ -129,12 +119,10 @@ int main()
             for (auto* obstacle : obstacles)
                 obstacle->draw();
 
-            moveOrderManager.clear();
-
             if (showDebug) {
-                DrawText(TextFormat("%i fps, %i orders", GetFPS(), moveOrderManager.orders.size()), 20, 20, 30, DEBUG_COLOR);
+                DrawText(TextFormat("%i fps, %i orders", GetFPS(), moveOrderManager.orders.size()), 20, 20, 30, CONF.DEBUG_COLOR);
                 // if (hoverCell)
-                //     DrawText(TextFormat("hoverCell: (), (%.2f, %i)", pointerPos.x, pointerPos.y, hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, DEBUG_COLOR);
+                //     DrawText(TextFormat("hoverCell: (), (%.2f, %i)", pointerPos.x, pointerPos.y, hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, CONF.DEBUG_COLOR);
 
                 shared_ptr<MoveOrder> order;
                 if (moveOrderManager.orders.size()) {
@@ -144,11 +132,11 @@ int main()
                 }
                 if (order) {
                     order->pathfinder.draw({0,0,wSize.x,wSize.y});
-                    DrawText(TextFormat("order: %i", order->id), 620, 20, 30, DEBUG_COLOR);
+                    DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
                     if (selection.items.size()) {
                         Boid* boid = selection.items[0];
                         if (auto moveOrder = dynamic_pointer_cast<MoveOrder>(boid->order))
-                            DrawText(TextFormat("B: order=%i, dist=%f", moveOrder->id, Vector2Length(moveOrder->destination - boid->pos)), 20, 80, 30, DEBUG_COLOR);
+                            DrawText(TextFormat("B: order=%i, dist=%f", moveOrder->id, Vector2Length(moveOrder->destination - boid->pos)), 20, 80, 30, CONF.DEBUG_COLOR);
                     }
                 }
             }

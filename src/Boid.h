@@ -10,7 +10,6 @@
 
 using namespace std;
 
-static const bool DEBUG_PERF = false;
 static const int BOIDS_COUNT = 500;
 static const int GROUPS_COUNT = 3;
 static const int OBSTACLES_COUNT = 40;

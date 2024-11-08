@@ -47,7 +47,7 @@ public:
   vec2 getDir (vec2& pos) override {
     vec2 dir = pathfinder.getDir(pos);
     if (dir.x == 0 && dir.y == 0)
-      return Vector2Normalize(destination - pos);
+      return Vector2Normalize(pos - destination);
     return dir;
   }
 

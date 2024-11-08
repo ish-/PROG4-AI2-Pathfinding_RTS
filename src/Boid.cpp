@@ -12,27 +12,8 @@
 
 // #include "Obstacle.h"
 
-static const float MAX_SPEED = 1.;
-static const float SPEED = 60. * 2.;
-static const float HIT_HP = .41;
-
-static const float SEPARATE_DIST = 10.;
-static const float ALIGN_DIST = 170.;
-static const float FOLLOW_DIST = 200.;
-
-static const float ORDER_MULT = .3;
-static const float SEPARATE_MULT = 1.;
-static const float OBSTACLE_AVOID_MULT = 1.;
-static const float ALIGN_MULT = .3;
-static const float FOLLOW_MULT = .8;
-static const float SEEK_MULT = 5.;
-static const float ALL_INFL_MULT = .2;
-
-static const float OBSTACLE_AVOID_DIST = 30.;
-
 static const Color COLORS[] = { WHITE, PINK, GREEN, BLUE };
 static const Color OBSTACLE_COLOR = YELLOW;
-
 
 vector<int> Boid::scores {0,0,0,0,0,0,0,0,0};
 
@@ -62,7 +43,7 @@ Boid::Boid(Vector2 _pos, Vector2 _vel, int _group/*, Texture2D _tex*/) {
 
 void Boid::updateClosest(Boid* boid, float& dist, Vector2& dir) {
     if (boid->group == (group + 1) % GROUPS_COUNT) {
-        if (dist < FOLLOW_DIST && dist < closestBoid.dist)
+        if (dist < CONF.Boid.followDist && dist < closestBoid.dist)
             closestBoid = { dist, boid };
 
             if (dist < size * .9)
@@ -72,8 +53,8 @@ void Boid::updateClosest(Boid* boid, float& dist, Vector2& dir) {
 
 void Boid::kill(Boid* victim) {
     //boidsToDeleteIdxs.push_back(victimIdx);
-    victim->hp -= HIT_HP;
-    hp += HIT_HP / 2;
+    victim->hp -= CONF.Boid.hitHp;
+    hp += CONF.Boid.hitHp / 2;
     if (victim->hp < 0.) {
         scores[group]++;
         victim->isAlive = false;
@@ -104,7 +85,7 @@ Vector2 Boid::separate(Boid* boid, float& dist, Vector2& dir) const {
     // if (!hasOrder() && boid->hasOrder())
     // if (boid->group == this->group || boid->group != (GROUPS_COUNT + group - 1) % GROUPS_COUNT)
     {
-        if (dist < SEPARATE_DIST) {
+        if (dist < CONF.Boid.separateDist) {
             return dir * -1.f;
         }
     }
@@ -129,7 +110,7 @@ Vector2 Boid::avoid(Obstacle* obstacle) const {
 
 Vector2 Boid::align(Boid* boid, float& dist, Vector2& dir) const {
     if (group == boid->group) {
-        if (dist < ALIGN_DIST) {
+        if (dist < CONF.Boid.alignDist) {
             return boid->vel;
         }
     }
@@ -163,11 +144,11 @@ void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacl
         avoidInfl += avoid(obstacle);
 
     vec2 infl = vec2{0,0}
-        + Vector2Normalize(avoidInfl) * OBSTACLE_AVOID_MULT
-        // + Vector2Normalize(alignInfl) * ALIGN_MULT
-        + Vector2Normalize(separateInfl) * SEPARATE_MULT
+        + Vector2Normalize(avoidInfl) * CONF.Boid.obstacleAvoidWeight
+        // + Vector2Normalize(alignInfl) * CONF.Boid.alignWeight
+        + Vector2Normalize(separateInfl) * CONF.Boid.separateWeight
         // + Vector2Normalize(seekInfl)
-        // + Vector2Normalize(followInfl) * FOLLOW_MULT
+        // + Vector2Normalize(followInfl) * CONF.Boid.followWeight
     ;
 
     if (order) {
@@ -177,18 +158,18 @@ void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacl
         else {
             vec2 orderDir = order->getDir(pos);
             // LOG("orderDir", dist, orderDir);
-            infl -= (orderDir * ORDER_MULT);
+            infl -= (orderDir * CONF.Boid.orderWeight);
         }
     }
 
     //acc = infl - vel;
     //vel += acc;
-    vel += infl * ALL_INFL_MULT;
-    vel = Vector2ClampValue(vel, -MAX_SPEED, MAX_SPEED);
+    vel += infl * CONF.Boid.allInflWeight;
+    vel = Vector2ClampValue(vel, -CONF.Boid.maxSpeed, CONF.Boid.maxSpeed);
     // if (!order)
       vel *= .95;
     checkBoudariesAndReflect();
-    pos += vel * float(delta) * SPEED;
+    pos += vel * float(delta) * CONF.Boid.speed;
 
     // if ((hp -= .001) < 0.)
     //     isAlive = false;

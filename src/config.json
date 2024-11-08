@@ -1,3 +1,23 @@
 {
+  "DEBUG_COLOR": [1,1,1,1],
+
+  "Boid": {
+    "speed": 120,
+    "maxSpeed": 1,
+    "hitHp": 0.41,
+    "separateDist": 10,
+    "alignDist": 170,
+    "followDist": 200,
+    "obstacleAvoidDist": 30,
+
+    "orderWeight": 0.3,
+    "separateWeight": 1,
+    "obstacleAvoidWeight": 1,
+    "alignWeight": 0.3,
+    "followWeight": 0.8,
+    "seekWeight": 5,
+    "allInflWeight": 0.2
+  },
+
   "version": "0.1"
 }
