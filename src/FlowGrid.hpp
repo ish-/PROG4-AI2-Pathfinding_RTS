@@ -7,7 +7,7 @@
 #include <raymath.h>
 
 #include "common/math.hpp"
-#include "Grid.h"
+#include "Grid.hpp"
 
 using namespace std;
 

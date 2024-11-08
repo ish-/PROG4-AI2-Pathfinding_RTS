@@ -5,31 +5,16 @@
 #include <raymath.h>
 
 #include "common/math.hpp"
-#include "common/log.hpp"
+// #include "common/log.hpp"
 #include "config.hpp"
 
-#include "Boid.h"
-
-// #include "Obstacle.h"
+#include "Boid.hpp"
 
 static const Color COLORS[] = { WHITE, PINK, GREEN, BLUE };
-static const Color OBSTACLE_COLOR = YELLOW;
 
 vector<int> Boid::scores {0,0,0,0,0,0,0,0,0};
 
 Vector2 nullVec2 = Vector2{0,0};
-
-Obstacle::Obstacle(const Rectangle& rect): rect{rect} {
-}
-
-void Obstacle::draw() {
-    DrawRectangleLines(rect.x, rect.y, rect.width, rect.height, touched ? YELLOW : GRAY);
-    Color fill = YELLOW;
-    fill.a = touched;
-    DrawRectangle(rect.x, rect.y, rect.width, rect.height, fill);
-
-    touched = std::max(0., touched - 255. / 60.);
-}
 
 Color Boid::selectedColor = WHITE;
 
@@ -42,7 +27,7 @@ Boid::Boid(Vector2 _pos, Vector2 _vel, int _group/*, Texture2D _tex*/) {
 }
 
 void Boid::updateClosest(Boid* boid, float& dist, Vector2& dir) {
-    if (boid->group == (group + 1) % GROUPS_COUNT) {
+    if (boid->group == (group + 1) % CONF.GROUPS_N) {
         if (dist < CONF.Boid.followDist && dist < closestBoid.dist)
             closestBoid = { dist, boid };
 
@@ -63,15 +48,15 @@ void Boid::kill(Boid* victim) {
     DrawRectangleLines(pos.x - size/2, pos.y - size/2, size, size, RED);
 }
 
-void Boid::checkBoudariesAndReflect() {
-    if (pos.x <= 0 || pos.x >= W) {
+void Boid::checkBoudariesAndReflect(vec2 wSize) {
+    if (pos.x <= 0 || pos.x >= wSize.x) {
         vel.x = -vel.x;
-        pos.x = (pos.x <= 0) ? 0 : W;
+        pos.x = (pos.x <= 0) ? 0 : wSize.x;
     }
 
-    if (pos.y <= 0 || pos.y >= H) {
+    if (pos.y <= 0 || pos.y >= wSize.y) {
         vel.y = -vel.y;
-        pos.y = (pos.y <= 0) ? 0 : H;
+        pos.y = (pos.y <= 0) ? 0 : wSize.y;
     }
 }
 
@@ -82,8 +67,7 @@ Vector2 Boid::followClosest() const {
 }
 
 Vector2 Boid::separate(Boid* boid, float& dist, Vector2& dir) const {
-    // if (!hasOrder() && boid->hasOrder())
-    // if (boid->group == this->group || boid->group != (GROUPS_COUNT + group - 1) % GROUPS_COUNT)
+    // if (boid->group == this->group || boid->group != (CONF.GROUPS_N + group - 1) % CONF.GROUPS_N)
     {
         if (dist < CONF.Boid.separateDist) {
             return dir * -1.f;
@@ -118,7 +102,7 @@ Vector2 Boid::align(Boid* boid, float& dist, Vector2& dir) const {
 }
 
 // void Boid::update(vector<Boid*> boids, vector<Obstacle*> obstacles, Vector2& mouse, float& mouseZ) {
-void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacles) {
+void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacles, vec2 wSize) {
     closestBoid = {9999., nullptr };
     Vector2 avoidInfl{0,0};
     Vector2 alignInfl{0,0};
@@ -168,7 +152,7 @@ void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacl
     vel = Vector2ClampValue(vel, -CONF.Boid.maxSpeed, CONF.Boid.maxSpeed);
     // if (!order)
       vel *= .95;
-    checkBoudariesAndReflect();
+    checkBoudariesAndReflect(wSize);
     pos += vel * float(delta) * CONF.Boid.speed;
 
     // if ((hp -= .001) < 0.)
@@ -185,5 +169,3 @@ void Boid::draw() const {
     }
     DrawPoly(pos, 3, 8, angle, COLORS[group]);
 }
-
-bool Boid::hasOrder () const { return orderVel.x != 0 || orderVel.y != 0; }

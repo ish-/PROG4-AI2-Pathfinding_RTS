@@ -4,8 +4,8 @@
 #include "common/math.hpp"
 #include "common/log.hpp"
 
-#include "FlowGrid.h"
-#include "Grid.h"
+#include "FlowGrid.hpp"
+#include "Grid.hpp"
 
 // FlowGrid<TCell>::FlowGrid (ivec2 _size) : Grid<TCell>(_size) {};
 

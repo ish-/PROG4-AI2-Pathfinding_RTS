@@ -78,20 +78,16 @@ inline float lag(float current, float target, float smoothingFactor, float dt) {
     return current + (target - current) * smoothingFactor * dt;
 }
 
-template <typename T, typename U>
-inline bool AABBCollision (T& one, U& two) {
-    bool collisionX = one.x + one.width >= two.x && two.x + two.width >= one.x;
-    bool collisionY = one.y + one.height >= two.y && two.y + two.height >= one.y;
-    return collisionX && collisionY;
-}
+template <typename T = vec2>
+inline bool isZero (const T& v) { return v.x == 0 && v.y == 0; }
 
 #include <random>
 inline std::random_device _rd;
 inline std::mt19937 _rdGen(_rd());
 inline std::uniform_real_distribution<float> _rdGenDistf(0,1);
-inline float randf () {
-    return _rdGenDistf(_rdGen);
-}
+inline float randf () { return _rdGenDistf(_rdGen); }
+template <typename T = float>
+inline float randf (const T& min, const T& max) { return std::lerp(min, max, _rdGenDistf(_rdGen)); }
 
 inline std::ostream& operator<<(std::ostream& os, const vec2& v) {
   os << "vec2(" << v.x << ", " << v.y << ")";

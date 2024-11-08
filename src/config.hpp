@@ -29,6 +29,10 @@ struct Config {
     BoidConfig Boid;
     Color DEBUG_COLOR;
 
+    int BOIDS_N;
+    int GROUPS_N;
+    int OBSTACLES_N;
+
     std::string version = "0";
 };
 
@@ -59,6 +63,9 @@ inline void from_json(const nlohmann::json& j, Config& c) {
     j.at("Boid").get_to(c.Boid);
     // j.at("pointerX_range").at(0).get_to(c.pointerX_range[0]);
     j.at("DEBUG_COLOR").get_to(c.DEBUG_COLOR);
+    j.at("BOIDS_N").get_to(c.BOIDS_N);
+    j.at("GROUPS_N").get_to(c.GROUPS_N);
+    j.at("OBSTACLES_N").get_to(c.OBSTACLES_N);
 
     j.at("version").get_to(c.version);
 }

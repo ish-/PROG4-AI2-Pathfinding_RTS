@@ -1,9 +1,7 @@
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <exception>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include <raylib.h>
@@ -13,10 +11,11 @@
 #include "common/log.hpp"
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
-#include "FlowGrid.h"
-#include "Selection.hpp"
+#include "FlowGrid.hpp"
+#include "Obstacle.hpp"
+#include "Boid.hpp"
+#include "BoidSelection.hpp"
 #include "Order.hpp"
-#include "Boid.h"
 
 float FPS = 60.f;
 float FRAME_TIME = 1. / FPS;
@@ -99,7 +98,7 @@ int main()
             try {
                 Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
                 for (auto boid: boids) {
-                    boid->update(delta, boids, obstacles);
+                    boid->update(delta, boids, obstacles, wSize);
                 }
             } catch (const std::exception& e) {
                 // std::cerr << "\033[32mException caught: " << e.what() << "\033[0m" << std::endl;
@@ -116,7 +115,7 @@ int main()
             if (selection.active)
                 selection.draw();
 
-            for (auto* obstacle : obstacles)
+            for (Obstacle* obstacle : obstacles)
                 obstacle->draw();
 
             if (showDebug) {
@@ -151,11 +150,11 @@ int main()
 void CreateObstacles () {
     float thickness = 30;
     bool flipFlop = false;
-    for (int i = 0; i < OBSTACLES_COUNT; i++) {
-        float length = std::lerp(50.f, 200.f, randf());
+    for (int i = 0; i < CONF.OBSTACLES_N; i++) {
+        float length = randf(50.f, 200.f);
         obstacles.push_back(new Obstacle({
-            std::lerp(-100.f, wSize.x, randf()),
-            std::lerp(-100.f, wSize.y, randf()),
+            randf(-100.f, wSize.x),
+            randf(-100.f, wSize.y),
             flipFlop ? thickness : length,
             flipFlop ? length : thickness,
         }));
@@ -164,12 +163,12 @@ void CreateObstacles () {
 }
 
 void CreateBoids() {
-    for (int i = 0; i < BOIDS_COUNT; i++) {
+    for (int i = 0; i < CONF.BOIDS_N; i++) {
         Vector2 pos{ randf() * float(wSize.x), randf() * float(wSize.y) };
         Vector2 vel{ 0, 0 };
-        int group = i % GROUPS_COUNT;
+        int group = i % CONF.GROUPS_N;
         Boid* boid = new Boid(pos, vel, group);
-        float bias = float(i) / float(BOIDS_COUNT);
+        float bias = float(i) / float(CONF.BOIDS_N);
         boid->hp = lerp(.8, 1.2, bias);
         boids.push_back(boid);
     }

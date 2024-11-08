@@ -2,30 +2,12 @@
 
 #include <memory>
 #include <vector>
-#include "raylib.h"
-#include "raymath.h"
+#include <raylib.h>
 
 #include "common/math.hpp"
-// #include "Obstacle.h"
+#include "Obstacle.hpp"
 
 using namespace std;
-
-static const int BOIDS_COUNT = 500;
-static const int GROUPS_COUNT = 3;
-static const int OBSTACLES_COUNT = 40;
-static const int W = 1280;
-static const int H = 720;
-
-class Obstacle {
-public:
-    Rectangle rect;
-    float margin = 10.;
-    float touched = 0.;
-
-    Obstacle(const Rectangle& rect);
-
-    void draw();
-};
 
 class IBoidMoveOrder {
 public:
@@ -59,11 +41,6 @@ public:
     shared_ptr<IBoidMoveOrder> order;
     bool selected = false;
 
-    // Texture2D tex;
-    // Rectangle texRect;
-
-    bool hasOrder () const;
-
     Boid(Vector2 _pos, Vector2 _vel, int _group/*, Texture2D _tex*/);
 
     void updateClosest(Boid* boid, float& dist, Vector2& dir);
@@ -78,7 +55,7 @@ public:
 
     Vector2 seek(Vector2& p, float& dir) const;
 
-    void checkBoudariesAndReflect();
+    void checkBoudariesAndReflect(vec2 wSize);
 
     void __update();
 
@@ -87,7 +64,8 @@ public:
     void update(
         double delta,
         vector<Boid*>& boids,
-        vector<Obstacle*>& obstacles
+        vector<Obstacle*>& obstacles,
+        vec2 wSize
     );
 
     void draw() const;
