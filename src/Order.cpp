@@ -1,5 +1,6 @@
 #include "Order.hpp"
 #include "Obstacle.hpp"
+#include "ShortPath.hpp"
 
 float MoveOrder::DONE_DIST_SQR = 20 * 20;
 int MoveOrder::MoveOrder_i = 0;
@@ -24,6 +25,8 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
   }
 
   pathfinder.setFlowField(destCell, fromCell);
+
+  shortPath.calc(pathfinder.path, obstacles);
 }
 
 vec2 MoveOrder::getDir (vec2& pos) {
@@ -39,11 +42,12 @@ vec2 MoveOrder::getDestination () {
 
 ////////////////////////////////////////
 
-void MoveOrderManager::create (vector<Boid*>& boids, vec2& destination, vector<Obstacle*>& obstacles) {
+shared_ptr<MoveOrder> MoveOrderManager::create (vector<Boid*>& boids, vec2& destination, vector<Obstacle*>& obstacles) {
   auto order = std::make_shared<MoveOrder>(destination, boids, obstacles);
   orders.push_back(order);
   for (Boid* boid : boids)
     boid->order = order;
+  return order;
 }
 
 void MoveOrderManager::clear() {

@@ -63,6 +63,11 @@ inline vec2 operator*(const vec2& a, const T& b) {
     return vec2({ a.x * b.x, a.y * b.y});
 }
 template <typename T = vec2>
+inline bool operator==(const T& a, const T& b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+template <typename T = vec2>
 inline Rectangle operator/(const Rectangle& r, const T& v) {
     return { r.x / v.x, r.y / v.y, r.width / v.x, r.height / v.y };
 }
