@@ -73,7 +73,7 @@ inline void from_json(const nlohmann::json& j, Config& c) {
 inline Config CONF;
 
 inline Config& LoadConfig () {
-    std::ifstream configJsonFile("../resources/config.json");
+    std::ifstream configJsonFile("resources/config.json");
 
     if (!configJsonFile.is_open()) {
         std::cerr << "Could not open config.json file!" << std::endl;

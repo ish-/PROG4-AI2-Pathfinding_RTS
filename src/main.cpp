@@ -48,6 +48,8 @@ bool DrawAliveAndClearDead (Boid* boid);
 
 int main()
 {
+    std::filesystem::current_path(BIN_TO_BUILD_PATH);
+
     FlowGrid::CELL_SIZE = cellSize;
     FlowGrid::SIZE = gridSize;
 
