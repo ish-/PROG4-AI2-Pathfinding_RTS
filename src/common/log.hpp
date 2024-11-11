@@ -1,38 +1,59 @@
 #pragma once
 #include <iostream>
-// #include <raymath.h>
 
-// #include "common/math.hpp"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmacro-redefined"
 
-template <typename... T>
-inline void LOG (const char* title, T&&... args) {
-  std::cout << "[LOG] " << title << " -> ";
-  ((std::cout << args << " "), ...);
-  std::cout << std::endl;
-}
+#define COUT(...)
+#define LOG(...)
+#define TEST(...)
 
-// class LOG_TIMER {
-// public:
-//   double start;
-//   double elapsed;
-//   bool silent;
-//   std::string title;
+#ifndef COUT_DISABLE
+	#define CRED(msg) "\033[31m" msg "\033[0m"
+	#define CGREEN(msg) "\033[32m" msg "\033[0m"
+	#define CYELLOW(msg) "\033[33m" msg "\033[0m"
+	#define CBOLD(msg) "\033[1m" msg "\033[0m"
 
-//   LOG_TIMER (const char* title, bool silent = false) : title(title), silent(silent) {
-//     start = GetTime();
-//   }
+	#define COUT(...) _COUT(__VA_ARGS__)
 
-//   void stop () {
-//     elapsed = GetTime() - start;
-//   }
+	template <typename... T>
+	inline void _COUT (T&&... args) {
+		((std::cout << args << " "), ...);
+		std::cout << '\n';
+	}
 
-//   void destroy () {
-//     delete this;
-//   }
+	#ifndef LOG_DISABLE
+		#define LOG(...) _LOG(__VA_ARGS__)
 
-//   ~LOG_TIMER () {
-//     if (silent)
-//       return;
-//     LOG("[timer]", title, elapsed);
-//   }
-// };
+		template <typename... T>
+		inline void _LOG (const char* title, T&&... args) {
+			if constexpr (sizeof...(args) > 0)
+				_COUT( CYELLOW("[LOG]"), title, "->", args... );
+			else
+				_COUT( CYELLOW("[LOG]"), title);
+		}
+	#endif
+
+	#ifndef TEST_DISABLE
+		#define TEST(...) _TEST(__VA_ARGS__)
+
+		template <typename T>
+		bool eqByRef (T& a, T& b) { return &a == &b; }
+		template <typename T>
+		bool eqByVal (T& a, T& b) { return a == b; }
+
+		template <typename T>
+		void _TEST (const char* name, T res, std::type_identity_t<T> exp, bool (*eq)(T&, T&) = eqByVal) {
+			bool passed = eq(res, exp);
+			if (passed)
+				_COUT(CBOLD(CGREEN("[TEST] Pass")), name, "=", res);
+			else
+				_COUT(CBOLD(CRED("[TEST] FAIL")), name, res, "!=", exp);
+			#ifdef TEST_THROW
+				throw std::runtime_error("Test failed");
+			#endif
+		}
+	#endif
+#endif
+
+#pragma GCC diagnostic pop

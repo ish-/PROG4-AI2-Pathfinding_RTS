@@ -15,18 +15,18 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
     meanPos += boid->pos;
   meanPos = meanPos / items.size();
 
-  auto* fromCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, meanPos));
-  auto* destCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, destination));
-
   for (Obstacle* obstacle : obstacles) {
     Rectangle gridObstacleRect = obstacle->rect / FlowGrid::CELL_SIZE;
     for (auto* cell : pathfinder.atRect(gridObstacleRect))
       cell->obstacle = true;
   }
 
-  pathfinder.setFlowField(destCell, fromCell);
+  auto* startCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, destination));
+  pathfinder.destCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, meanPos));
+  pathfinder.setFlowField(startCell);
 
-  shortPath.calc(pathfinder.path, obstacles);
+  // if (pathfinder.path.size())
+  //   shortPath.calc(pathfinder.path, obstacles, FlowGrid::CELL_SIZE);
 }
 
 vec2 MoveOrder::getDir (vec2& pos) {

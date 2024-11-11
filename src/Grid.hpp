@@ -4,6 +4,7 @@
 
 #include "common/math.hpp"
 #include "common/log.hpp"
+#include "raymath.h"
 
 using namespace std;
 
@@ -38,6 +39,8 @@ public:
     void init (const ivec2& size);
 
     TCell* at (const ivec2& pos);
+
+    TCell* at (const vec2& pos);
 
     TCell* at (const int& x, const int& y);
 
@@ -79,6 +82,11 @@ TCell* Grid<TCell>::at (const ivec2& pos) {
 }
 
 template <typename TCell>
+TCell* Grid<TCell>::at (const vec2& pos) {
+    return at(toCoord(cellSize, pos));
+}
+
+template <typename TCell>
 TCell* Grid<TCell>::at (const int& x, const int& y) {
     int idx = y * size.x + x;
     if (x < 0 || y < 0 || x >= size.x || y >= size.y)
@@ -115,21 +123,21 @@ vector<TCell*> Grid<TCell>::atRadius (vec2 pos, float radius) {
     }
 }
 
-inline ivec2 KERNEL_1[4] = {
+inline const ivec2 KERNEL_1[4] = {
     ivec2{ 1, 0 },
     ivec2{ 0, 1 },
     ivec2{ -1, 0 },
     ivec2{ 0, -1 },
 };
 
-inline ivec2 KERNEL_DIAGONAL_1[4] = {
+inline const ivec2 KERNEL_DIAGONAL_1[4] = {
     ivec2{ 1, 1 },
     ivec2{ -1, 1 },
     ivec2{ -1, -1 },
     ivec2{ 1, -1 },
 };
 
-inline ivec2 KERNEL_ALL_1[8] = {
+inline const ivec2 KERNEL_ALL_1[8] = {
     ivec2{ 1, 0 },
     ivec2{ 0, 1 },
     ivec2{ -1, 0 },
@@ -138,4 +146,15 @@ inline ivec2 KERNEL_ALL_1[8] = {
     ivec2{ -1, 1 },
     ivec2{ -1, -1 },
     ivec2{ 1, -1 },
+};
+
+inline const vec2 KERNEL_ALL_UNIT_1[8] = {
+    Vector2Normalize(KERNEL_ALL_1[0]),
+    Vector2Normalize(KERNEL_ALL_1[1]),
+    Vector2Normalize(KERNEL_ALL_1[2]),
+    Vector2Normalize(KERNEL_ALL_1[3]),
+    Vector2Normalize(KERNEL_ALL_1[4]),
+    Vector2Normalize(KERNEL_ALL_1[5]),
+    Vector2Normalize(KERNEL_ALL_1[6]),
+    Vector2Normalize(KERNEL_ALL_1[7]),
 };

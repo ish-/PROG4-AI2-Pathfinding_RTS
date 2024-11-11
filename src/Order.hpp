@@ -6,6 +6,8 @@
 #include "FlowGrid.hpp"
 #include "ShortPath.hpp"
 
+class MoveOrder;
+using MoveOrderPtr = std::shared_ptr<MoveOrder>;
 
 class MoveOrder: public IBoidMoveOrder {
 public:
@@ -29,7 +31,7 @@ class MoveOrderManager {
 public:
   vector<std::weak_ptr<MoveOrder>> orders;
 
-  std::shared_ptr<MoveOrder> create (vector<Boid*>& boids, vec2& destination, vector<Obstacle*>& obstacles);
+  MoveOrderPtr create (vector<Boid*>& boids, vec2& destination, vector<Obstacle*>& obstacles);
 
   void clear();
 };

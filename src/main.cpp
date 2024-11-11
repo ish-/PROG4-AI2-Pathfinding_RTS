@@ -7,6 +7,7 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include "Grid.hpp"
 #include "common/math.hpp"
 #include "common/log.hpp"
 #include "StateChangeDetector.hpp"
@@ -30,21 +31,24 @@ float mouseZ = 0;
 int frame = 0;
 double now = 0;
 double delta = 0;
+bool paused = false;
 
 Vector2& pointer = pointerPos;
 StateChangeDetector fullscreenBtn;
 StateChangeDetector reloadConfigBtn;
 StateChangeDetector showDebugBtn;
+StateChangeDetector pauseBtn;
 StateChangeDetector pointerActBtn;
 StateChangeDetector pointerCtxBtn;
 
-vector<Obstacle*> obstacles;
-vector<Boid*> boids;
+std::vector<Obstacle*> obstacles;
+std::vector<Boid*> boids;
 BoidSelection selection;
 MoveOrderManager moveOrderManager;
 void CreateObstacles ();
 void CreateBoids();
 bool DrawAliveAndClearDead (Boid* boid);
+MoveOrderPtr GetLastOrder ();
 
 int main()
 {
@@ -92,20 +96,24 @@ int main()
                 moveOrderManager.create(selection.items, pointerPos, obstacles);
         }
 
+        if (pauseBtn.hasChangedOn(IsKeyPressed(KEY_SPACE)))
+            paused = !paused;
+
         moveOrderManager.clear();
 
         BeginDrawing();
             ClearBackground(BLACK);
 
-            try {
-                Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
-                for (auto boid: boids) {
-                    boid->update(delta, boids, obstacles, wSize);
+            if (!paused) {
+                try {
+                    Boid::selectedColor.a = (unsigned char)mapRange(sinf(GetTime() * 5.), -1, 1, 100, 255);
+                    for (auto& boid: boids) {
+                        boid->update(delta, boids, obstacles, wSize);
+                    }
+                } catch (const std::exception& e) {
+                    LOG("\033[1;4;31mException caught: ", e.what(), "\033[0m");
+                    break;
                 }
-            } catch (const std::exception& e) {
-                // std::cerr << "\033[32mException caught: " << e.what() << "\033[0m" << std::endl;
-                LOG("\033[1;4;31mException caught: ", e.what(), "\033[0m");
-                break;
             }
 
             boids.erase(
@@ -117,21 +125,13 @@ int main()
             if (selection.active)
                 selection.draw();
 
-            for (Obstacle* obstacle : obstacles)
+            for (auto& obstacle : obstacles)
                 obstacle->draw();
 
             if (showDebug) {
                 DrawText(TextFormat("%i fps, %i orders", GetFPS(), moveOrderManager.orders.size()), 20, 20, 30, CONF.DEBUG_COLOR);
-                // if (hoverCell)
-                //     DrawText(TextFormat("hoverCell: (), (%.2f, %i)", pointerPos.x, pointerPos.y, hoverCell->pos.x, hoverCell->pos.y), 20, 50, 30, CONF.DEBUG_COLOR);
 
-                shared_ptr<MoveOrder> order;
-                if (moveOrderManager.orders.size()) {
-                    auto wOrder = moveOrderManager.orders.back();
-                    if (!wOrder.expired())
-                        order = wOrder.lock();
-                }
-                if (order) {
+                if (MoveOrderPtr order = GetLastOrder()) {
                     order->pathfinder.draw({0,0,wSize.x,wSize.y});
                     order->shortPath.draw();
                     DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
@@ -140,6 +140,14 @@ int main()
                         if (auto moveOrder = dynamic_pointer_cast<MoveOrder>(boid->order))
                             DrawText(TextFormat("B: order=%i, dist=%f", moveOrder->id, Vector2Length(moveOrder->destination - boid->pos)), 20, 80, 30, CONF.DEBUG_COLOR);
                     }
+
+                    if (FlowCell* hoverCell = order->pathfinder.at(pointerPos))
+                        DrawText(TextFormat(
+                            "Cell: (%.1f, %.1f) dot: %.2f",
+                            hoverCell->pfToStart.x,
+                            hoverCell->pfToStart.y,
+                            hoverCell->pfDirWeight
+                        ), 20, 120, 30, CONF.DEBUG_COLOR);
                 }
             }
         EndDrawing();
@@ -183,3 +191,12 @@ bool DrawAliveAndClearDead (Boid* boid)
         boid->draw();
     return !boid->isAlive;
 };
+
+MoveOrderPtr GetLastOrder () {
+    if (moveOrderManager.orders.size()) {
+        auto wOrder = moveOrderManager.orders.back();
+        if (!wOrder.expired())
+            return wOrder.lock();
+    }
+    return nullptr;
+}

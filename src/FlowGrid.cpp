@@ -14,7 +14,7 @@ Color CELL_HOVER_COLOR = ORANGE;
 ivec2 FlowGrid::SIZE = ivec2(16, 9);
 vec2 FlowGrid::CELL_SIZE = vec2(1280./16., 720./9.);
 
-void FlowGrid::draw (const Rectangle& rect/*, FlowCell* hoverCell*/) {
+void FlowGrid::draw (const Rectangle& rect) {
     Vector2 cellSize = { rect.width / this->size.x, rect.height / this->size.y };
 
     for (const FlowCell& cell : this->cells) {
@@ -51,27 +51,45 @@ void FlowGrid::draw (const Rectangle& rect/*, FlowCell* hoverCell*/) {
     }
 };
 
-void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
-    reset();
-    // LOG_TIMER timer("FlowGrid.setFlowField");
-    fromCell->pfDist = 0;
-    queueCells.push(fromCell);
+// Set the weights of the compass cells by dot product to the `destCell` direction
+// void FlowGrid::setCompassWeights (FlowCell* startCell, FlowCell* destCell) {
+//     vec2 dir = destCell->pos - startCell->pos;
+//     for (CompassCell* compassCell : compass) {
+//         compassCell->dirWeight = Vector2DotProduct(compassCell->pos, dir);
+//     }
+// }
 
-    while (!queueCells.empty() /* && (i++) < 1000 */) {
-        FlowCell* curCell = queueCells.front();
+void FlowGrid::setFlowField(FlowCell* startCell, bool repeat) {
+    // reset();
+    // LOG_TIMER timer("FlowGrid.setFlowField");
+    startCell->pfDist = 0;
+    queueCells.push(startCell);
+
+    const float MAX_DIST_SQR = size.x*size.x + size.y*size.y;
+
+    int maxIters = 100000;
+    while (!queueCells.empty() && (maxIters--) > 0) {
+        FlowCell* curCell = queueCells.top();
+        // FlowCell* curCell = queueCells.front();
         queueCells.pop();
         passedCells.insert(curCell);
 
         // LOG("curCell:", curCell->coord);
 
-        int i = -1;
         // LOG("curCell->pos:", curCell->pos);
         for (int i = 0; i < 8; i++) {
             const ivec2& offset = KERNEL_ALL_1[i];
 
             FlowCell* cell = at(curCell->pos + offset);
-            if (cell == nullptr || passedCells.contains(cell))
+            if (cell == nullptr)
                 continue;
+            if (passedCells.contains(cell)) {
+                if (repeat) {
+                    return;
+                } else {
+                    continue;
+                }
+            }
             if (cell->obstacle)
                 continue;
             if (i > 3) { // diagonal
@@ -88,23 +106,31 @@ void FlowGrid::setFlowField(FlowCell* fromCell, FlowCell* toCell) {
 
             cell->pfDist = nextDist;
             cell->pfFromCell = curCell;
-            cell->pfToStart = offset * 1.;
-            if (cell == toCell) {
-                setPath(fromCell, toCell);
-                // return;
+            cell->pfToStart = offset;
+            vec2 toDest = destCell->pos - cell->pos;
+            // float toLenSqr = Vector2LengthSqr(toDest);
+            cell->pfDirWeight = Vector2DotProduct(
+                Vector2Normalize(KERNEL_ALL_UNIT_1[i]),
+                Vector2Normalize(toDest)
+            );
+            // cell->pfDirWeight = 1. - toLenSqr / MAX_DIST_SQR;
+
+            if (cell == destCell && !path.size()) {
+                setPath(startCell);
+                return;
             } else
                 queueCells.push(cell);
         }
     }
 }
 
-void FlowGrid::setPath(FlowCell* fromCell, FlowCell* toCell) {
-    for(FlowCell* cell = toCell; cell != fromCell; cell = cell->pfFromCell) {
+void FlowGrid::setPath(FlowCell* startCell) {
+    for(FlowCell* cell = destCell; cell != startCell; cell = cell->pfFromCell) {
         cell->pfPath = true;
         path.push_back(cell);
     }
-    fromCell->pfPath = true;
-    path.push_back(fromCell);
+    startCell->pfPath = true;
+    path.push_back(startCell);
 }
 
 void FlowGrid::reset () {
@@ -121,11 +147,17 @@ void FlowGrid::reset () {
     while (!queueCells.empty()) queueCells.pop();
 }
 
-vec2 FlowGrid::getDir (vec2& pos) {
+vec2 FlowGrid::getDir (vec2& pos, bool repeat) {
     vec2 gridCoord = pos / cellSize;
     FlowCell* cell = at(gridCoord.x, gridCoord.y);
-    if (cell == nullptr)
+    if (!cell)
         return {0,0};
+    if (isZero(cell->pfToStart)) {
+        // if (repeat)
+            return {0,0};
+        // setFlowField(at(pos));
+        // return getDir(pos, true);
+    }
     return cell->pfToStart;
 }
 
