@@ -18,10 +18,12 @@ Vector2 nullVec2 = Vector2{0,0};
 
 Color Boid::selectedColor = WHITE;
 
+int Boid::i = 0;
 Boid::Boid(Vector2 _pos, Vector2 _vel, int _group/*, Texture2D _tex*/) {
     pos = _pos;
     vel = _vel;
     group = _group;
+    id = Boid::i++;
     // tex = _tex;
     // texRect = Rectangle{ 0,0, (float)tex.width, (float)tex.height };
 }
@@ -164,8 +166,9 @@ void Boid::draw() const {
     float s = (.5 + hp) * size * 4;
     float angle = atan2(vel.y, vel.x) / M_PI * 180/* + 180*/;
     // DrawTexturePro(tex, texRect, { pos.x, pos.y, s, s }, { s/2, s/2 }, angle, COLORS[group]);
-    if (selected) {
+    if (selected)
       DrawPoly(pos, 3, 12, angle, Boid::selectedColor);
-    }
     DrawPoly(pos, 3, 8, angle, COLORS[group]);
+    if (selected)
+      DrawText(TextFormat("%i", id), pos.x-16, pos.y-16, 8, WHITE);
 }

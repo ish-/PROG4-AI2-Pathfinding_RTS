@@ -138,15 +138,21 @@ int main()
                     if (selection.items.size()) {
                         Boid* boid = selection.items[0];
                         if (auto moveOrder = dynamic_pointer_cast<MoveOrder>(boid->order))
-                            DrawText(TextFormat("B: order=%i, dist=%f", moveOrder->id, Vector2Length(moveOrder->destination - boid->pos)), 20, 80, 30, CONF.DEBUG_COLOR);
+                            DrawText(TextFormat("dest: (%i, %i)", moveOrder->destCell->pos.x, moveOrder->destCell->pos.y), 20, 80, 30, CONF.DEBUG_COLOR);
                     }
 
                     if (FlowCell* hoverCell = order->pathfinder.at(pointerPos))
                         DrawText(TextFormat(
-                            "Cell: (%.1f, %.1f) dot: %.2f",
+                            "(%i, %i) (%.1f, %.1f)-%.2f <- (%i, %i) -> (%i, %i)",
+                            hoverCell->pos.x,
+                            hoverCell->pos.y,
                             hoverCell->pfToStart.x,
                             hoverCell->pfToStart.y,
-                            hoverCell->pfDirWeight
+                            hoverCell->pfDirWeight,
+                            hoverCell->pfFromCell ? hoverCell->pfFromCell->pos.x : -1,
+                            hoverCell->pfFromCell ? hoverCell->pfFromCell->pos.y : -1,
+                            hoverCell->pfToCell ? hoverCell->pfToCell->pos.x : -1,
+                            hoverCell->pfToCell ? hoverCell->pfToCell->pos.y : -1
                         ), 20, 120, 30, CONF.DEBUG_COLOR);
                 }
             }

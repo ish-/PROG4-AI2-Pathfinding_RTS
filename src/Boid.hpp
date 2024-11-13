@@ -25,7 +25,9 @@ struct BoidClosest {
 class Boid {
 public:
     static Color selectedColor;
+    static int i;
 
+    int id = -1;
     Vector2 vel{ 0,0 };
     Vector2 pos{ 0,0 };
     Vector2 acc{ 0,0 };

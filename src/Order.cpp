@@ -21,9 +21,15 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
       cell->obstacle = true;
   }
 
-  auto* startCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, destination));
-  pathfinder.destCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, meanPos));
-  pathfinder.setFlowField(startCell);
+  destCell = pathfinder.at(destination);
+  // auto* destCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, meanPos));
+  // pathfinder.setFlowField(destCell, destCell);
+
+  for (auto* boid : items) {
+    auto* cell = pathfinder.at(boid->pos);
+    pathfinder.setFlowField(destCell, cell, boid->id);
+
+  }
 
   // if (pathfinder.path.size())
   //   shortPath.calc(pathfinder.path, obstacles, FlowGrid::CELL_SIZE);

@@ -16,6 +16,7 @@ public:
 
   int id;
   vec2 destination;
+  FlowCell* destCell;
   vector<Boid*> items;
   FlowGrid pathfinder;
   ShortPath shortPath;

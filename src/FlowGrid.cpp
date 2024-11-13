@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <raymath.h>
+#include <stdexcept>
 
 #include "common/math.hpp"
 #include "common/log.hpp"
@@ -32,7 +33,9 @@ void FlowGrid::draw (const Rectangle& rect) {
             if (cell.pfDist < 1000) {
                 float angle = atan2(cell.pfToStart.y, cell.pfToStart.x) * (180.0f / PI);
                 fillColor = ColorFromHSV(angle, .5, 1);
-
+                // if (cell.debug) {
+                //     fillColor = BLACK;
+                // }
             //     float r = mapRange(cell.pfToStart.x, -1, 1, 0, 255);
             //     float g = mapRange(cell.pfToStart.y, -1, 1, 0, 255);
             //     fillColor = Color({(unsigned char)r, (unsigned char)g, 0, 255});
@@ -44,8 +47,9 @@ void FlowGrid::draw (const Rectangle& rect) {
         DrawRectangle(pos.x, pos.y, cellSize.x, cellSize.y, fillColor);
         // DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
         // DrawText(TextFormat("%.1f,%.1f", cell.pfToStart.x, cell.pfToStart.y), pos.x + 2, pos.y + 2, 11, BLACK);
+        static const vec2 PATH_SIZE = cellSize / 3;
         if (cell.pfPath)
-            DrawRectangle(pos.x + cellSize.x/2, pos.y + cellSize.y/2, cellSize.x/2, cellSize.y/2, RED);
+            DrawRectangle(pos.x + (cellSize.x-PATH_SIZE.x)/2, pos.y + (cellSize.y-PATH_SIZE.y)/2, PATH_SIZE.x, PATH_SIZE.y, RED);
         if (cell.corner)
             DrawRectangle(pos.x, pos.y + cellSize.y/2, cellSize.x/2, cellSize.y/2, GREEN);
     }
@@ -59,37 +63,47 @@ void FlowGrid::draw (const Rectangle& rect) {
 //     }
 // }
 
-void FlowGrid::setFlowField(FlowCell* startCell, bool repeat) {
+const int FLOW_MAX_ITERS = 10000;
+void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId) {
+    pfRun++;
+    auto* tmp = startCell;
+    startCell = destCell;
+    destCell = tmp;
+    this->startCell = startCell;
+    this->destCell = destCell;
+    float dist = Vector2Length(startCell->pos - destCell->pos);
     // reset();
     // LOG_TIMER timer("FlowGrid.setFlowField");
     startCell->pfDist = 0;
     queueCells.push(startCell);
 
+    const float MAX_DIST = sqrt(size.x*size.x + size.y*size.y);
     const float MAX_DIST_SQR = size.x*size.x + size.y*size.y;
 
-    int maxIters = 100000;
+    // if (repeat) {
+    //     LOG("R", startCell->pos, destCell->pos);
+    // } else {
+    //     LOG("-R", startCell->pos, destCell->pos);
+    // }
+
+    int maxIters = FLOW_MAX_ITERS;
     while (!queueCells.empty() && (maxIters--) > 0) {
         FlowCell* curCell = queueCells.top();
+        curCell->pfRun = pfRun;
         // FlowCell* curCell = queueCells.front();
         queueCells.pop();
         passedCells.insert(curCell);
 
-        // LOG("curCell:", curCell->coord);
-
-        // LOG("curCell->pos:", curCell->pos);
         for (int i = 0; i < 8; i++) {
             const ivec2& offset = KERNEL_ALL_1[i];
 
             FlowCell* cell = at(curCell->pos + offset);
             if (cell == nullptr)
                 continue;
-            if (passedCells.contains(cell)) {
-                if (repeat) {
-                    return;
-                } else {
-                    continue;
-                }
-            }
+            // bool isPassedCell = passedCells.contains(cell);
+            // if (isPassedCell)
+            //     continue;
+
             if (cell->obstacle)
                 continue;
             if (i > 3) { // diagonal
@@ -100,38 +114,105 @@ void FlowGrid::setFlowField(FlowCell* startCell, bool repeat) {
                     continue;
                 }
             }
+
+
             float nextDist = curCell->pfDist + (i > 3 ? 1.4142135623730951 : 1);
-            if (nextDist >= cell->pfDist)
+            if (cell->pfRun == pfRun && cell->pfDist <= nextDist)
                 continue;
 
+            if (cell->pfPath) {
+                cell->pfFromCell = curCell;
+                LOG("Found PATH", boidId, cell->pos, curCell->pos);
+                clearQueue();
+                setPath(startCell, destCell);
+                return;
+            }
+
+            cell->pfRun = pfRun;
             cell->pfDist = nextDist;
-            cell->pfFromCell = curCell;
+            // if (cell != startCell)
+                cell->pfFromCell = curCell;
             cell->pfToStart = offset;
             vec2 toDest = destCell->pos - cell->pos;
+            float distToDest = Vector2Length(toDest);
             // float toLenSqr = Vector2LengthSqr(toDest);
             cell->pfDirWeight = Vector2DotProduct(
-                Vector2Normalize(KERNEL_ALL_UNIT_1[i]),
-                Vector2Normalize(toDest)
-            );
+                KERNEL_ALL_UNIT_1[i],
+                // Vector2Normalize(toDest)
+                toDest / distToDest
+            ) + (1. - distToDest / dist) * 2.;
+
+            // if (repeat && isPassedCell) {
+            //     setPath(startCell, destCell);
+            //     clearQueue();
+            //     return;
+            // }
+
             // cell->pfDirWeight = 1. - toLenSqr / MAX_DIST_SQR;
 
-            if (cell == destCell && !path.size()) {
-                setPath(startCell);
+            if (cell == destCell/* && !path.size()*/) {
+                LOG("Found DESTination", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
+                setPath(startCell, destCell);
+                clearQueue();
                 return;
             } else
                 queueCells.push(cell);
         }
     }
+    LOG("End of while", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
 }
 
-void FlowGrid::setPath(FlowCell* startCell) {
-    for(FlowCell* cell = destCell; cell != startCell; cell = cell->pfFromCell) {
+void FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell) {
+    int i = 0;
+    for(FlowCell* cell = destCell; cell != startCell && i < 100; i++) {
+        if (cell == nullptr) {
+            LOG(CRED("cell is empty"), i, startCell->pos, destCell->pos);
+            return;
+        }
+        FlowCell* prevCell = cell;
+        cell = cell->pfFromCell;
+
+        if (cell == nullptr) {
+            LOG(CRED("pfFromCell is empty"), i);
+
+            int i = 0;
+            for(FlowCell* cell = destCell; cell != startCell && i < 100; i++) {
+                LOG("---", cell->pos);
+                cell->debug = true;
+                if (!cell || !cell->pfFromCell) {
+                    return;
+                }
+
+                cell = cell->pfFromCell;
+            }
+
+            LOG(CRED("------"));
+            return;
+        }
         cell->pfPath = true;
+        cell->pfToCell = prevCell;
         path.push_back(cell);
     }
     startCell->pfPath = true;
     path.push_back(startCell);
 }
+
+vec2 FlowGrid::getDir (vec2& pos, bool repeat) {
+    // vec2 gridCoord = pos / cellSize;
+    // FlowCell* cell = at(gridCoord.x, gridCoord.y);
+    if (FlowCell* cell = at(pos)) {
+        if (isZero(cell->pfToStart)) {
+            // if (repeat)
+                return {0,0};
+            // setFlowField(startCell, cell, true);
+            // return getDir(pos, true);
+        }
+        return cell->pfToStart;
+    }
+    else
+        return {0, 0};
+}
+
 
 void FlowGrid::reset () {
     // LOG_TIMER timer("FlowGrid::reset");
@@ -144,28 +225,10 @@ void FlowGrid::reset () {
     }
 
     passedCells.erase(passedCells.begin(), passedCells.end());
+    clearQueue();
+}
+
+void FlowGrid::clearQueue () {
+    passedCells.erase(passedCells.begin(), passedCells.end());
     while (!queueCells.empty()) queueCells.pop();
 }
-
-vec2 FlowGrid::getDir (vec2& pos, bool repeat) {
-    vec2 gridCoord = pos / cellSize;
-    FlowCell* cell = at(gridCoord.x, gridCoord.y);
-    if (!cell)
-        return {0,0};
-    if (isZero(cell->pfToStart)) {
-        // if (repeat)
-            return {0,0};
-        // setFlowField(at(pos));
-        // return getDir(pos, true);
-    }
-    return cell->pfToStart;
-}
-
-// void FlowGrid::setObstacles (vector<Obstacle*>& obstacles) {
-//     for (Obstacle* obstacle : obstacles) {
-//         Rectangle gridObstacleRect = obstacle->rect / cellSize;
-//         for (Cell* cell : atRect(gridObstacleRect)) {
-//             cell->obstacle = true;
-//         }
-//     }
-// }

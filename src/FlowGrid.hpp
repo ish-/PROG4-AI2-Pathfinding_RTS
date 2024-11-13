@@ -21,10 +21,13 @@ struct FlowCell : GridCell {
     float pfDist = 9999;
     vec2 pfToStart = vec2{0,0};
     FlowCell* pfFromCell = nullptr;
+    FlowCell* pfToCell = nullptr;
     float pfDirWeight = 0;
     bool pfPath = false;
+    int pfRun = -1;
     bool obstacle = false;
     bool corner = false;
+    bool debug = false;
 
     bool operator > (const FlowCell& other) const {
         return pfDirWeight > other.pfDirWeight;
@@ -64,18 +67,23 @@ public:
     //     new CompassCell{{ 0.,  1}}, // S
     //     new CompassCell{{ 1.,  1}}, // SE
     // };
+
+    int pfRun = 0;
     std::vector<FlowCell*> path;
     FlowCell* destCell;
+    FlowCell* startCell;
 
     FlowGrid () : Grid(FlowGrid::SIZE, FlowGrid::CELL_SIZE) {};
     FlowGrid (ivec2& size, vec2& cellSize, FlowCell* destCell)
         : Grid(size, cellSize) {};
 
     // void setCompassWeights (FlowCell* fromCell, FlowCell* toCell);
-    void setFlowField(FlowCell* startCell, bool repeat = false);
-    void setPath(FlowCell* startCell);
+    void setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId);
+    void setPath(FlowCell* startCell, FlowCell* destCell);
 
     void draw (const Rectangle& rect);
+
+    void clearQueue ();
 
     vec2 getDir (vec2& pos, bool repeat = false);
 
