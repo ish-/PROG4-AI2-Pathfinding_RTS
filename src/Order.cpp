@@ -29,7 +29,7 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
 
   for (auto* boid : items) {
     auto* cell = pathfinder.at(boid->pos);
-    vector<FlowCell*> path = pathfinder.setFlowField(cell, destCell, boid->id);
+    vector<FlowCell*> path = pathfinder.setFlowField(cell, destCell);
 
   }
 

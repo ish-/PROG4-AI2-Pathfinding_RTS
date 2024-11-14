@@ -1,20 +1,12 @@
 #pragma once
-#include "vector"
+#include <vector>
 using namespace std;
 
 #include "common/math.hpp"
+#include "PathfindCell.hpp"
 
-class PathfinderCell {
-public:
-  bool obstacle = false;
-  vec2 pfToStart = vec2{0,0};
-  PathfinderCell* pfToStartCell = nullptr;
-  PathfinderCell* pfToDestCell = nullptr;
-  PathfinderCell* pfWaypoint = nullptr;
-};
-
-template<typename TCell = PathfinderCell>
 class IPathfinderGrid {
 public:
-  virtual vector<TCell> getPath (vec2& start, vec2& dest) = 0;
+  virtual PathfindCell* cellAt (vec2& v) = 0;
+  virtual vector<PathfindCell*> getPath (vec2& start, vec2& dest) = 0;
 };

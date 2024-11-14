@@ -15,37 +15,20 @@
 
 using namespace std;
 
-class IPathfind {
-public:
-  virtual vec2 getDir (vec2& pos, bool repeat = false) = 0;
-};
-
 using FlowCell = PathfindCell;
 
 struct CompareFlowCellPriorityPtr {
     bool operator()(const FlowCell* a, const FlowCell* b) const {
-        return a->pfDirWeight < b->pfDirWeight;  // Max-heap: Higher priority comes first
+        return a->pfDirWeight < b->pfDirWeight;
     }
 };
 
-class FlowGrid : public Grid<FlowCell>, public IPathfind {
+class FlowGrid : public Grid<FlowCell>, public IPathfinderGrid {
 public:
     static ivec2 SIZE;
     static vec2 CELL_SIZE;
 
-    // std::vector<CompassCell*> compass = {
-    //     new CompassCell{{ 1.,  0}}, // E
-    //     new CompassCell{{ 1., -1}}, // NE
-    //     new CompassCell{{ 0., -1}}, // N
-    //     new CompassCell{{-1., -1}}, // NW
-    //     new CompassCell{{-1.,  0}}, // W
-    //     new CompassCell{{-1.,  1}}, // SW
-    //     new CompassCell{{ 0.,  1}}, // S
-    //     new CompassCell{{ 1.,  1}}, // SE
-    // };
-
     int pfRun = 0;
-    // std::vector<FlowCell*> path;
     FlowCell* destCell;
     FlowCell* startCell;
 
@@ -54,7 +37,7 @@ public:
         : Grid(size, cellSize) {};
 
     // void setCompassWeights (FlowCell* fromCell, FlowCell* toCell);
-    vector<FlowCell*> setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId);
+    vector<FlowCell*> setFlowField(FlowCell* startCell, FlowCell* destCell);
     vector<FlowCell*> setPath(FlowCell* startCell, FlowCell* destCell, FlowCell* usedCell = nullptr);
 
     void draw (const Rectangle& rect);
@@ -62,6 +45,11 @@ public:
     void clearQueue ();
 
     vec2 getDir (vec2& pos, bool repeat = false);
+
+    vector<FlowCell*> getPath (vec2& start, vec2& dest) override;
+
+    // TODO: move vec2 logic to PathfinderGrid extender
+    FlowCell* cellAt (vec2& v) override { return at(v); };
 
     // void setObstacles (vector<Obstacle*>& obstacles);
 

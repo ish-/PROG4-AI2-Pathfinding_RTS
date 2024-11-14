@@ -15,6 +15,10 @@ Color CELL_HOVER_COLOR = ORANGE;
 ivec2 FlowGrid::SIZE = ivec2(16, 9);
 vec2 FlowGrid::CELL_SIZE = vec2(1280./16., 720./9.);
 
+vector<FlowCell*> FlowGrid::getPath (vec2& start, vec2& dest) {
+    return setFlowField(at(start), at(dest));
+}
+
 void FlowGrid::draw (const Rectangle& rect) {
     Vector2 cellSize = { rect.width / this->size.x, rect.height / this->size.y };
 
@@ -64,7 +68,7 @@ void FlowGrid::draw (const Rectangle& rect) {
 // }
 
 const int FLOW_MAX_ITERS = 10000;
-vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId) {
+vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell) {
     pfRun++;
     // auto* tmp = startCell;
     // startCell = destCell;
@@ -95,7 +99,7 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
         passedCells.insert(curCell);
 
         if (curCell->pfPath) {
-            LOG("Found PATH", boidId, curCell->pos);
+            LOG("Found PATH", curCell->pos);
             clearQueue();
             return setPath(startCell, destCell, curCell);
         }
@@ -128,7 +132,7 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
 
             // if (cell->pfPath) {
             //     cell->pfToStartCell = curCell;
-            //     LOG("Found PATH", boidId, cell->pos, curCell->pos);
+            //     LOG("Found PATH", cell->pos, curCell->pos);
             //     clearQueue();
             //     setPath(startCell, destCell);
             //     return;
@@ -157,14 +161,14 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
             // cell->pfDirWeight = 1. - toLenSqr / MAX_DIST_SQR;
 
             if (cell == destCell/* && !path.size()*/) {
-                LOG("Found DESTination", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
+                LOG("Found DESTination", startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
                 clearQueue();
                 return setPath(startCell, destCell);
             } else
                 queueCells.push(cell);
         }
     }
-    LOG("End of while", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
+    LOG("End of while", startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
 }
 
 vector<FlowCell*> FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell, FlowCell* usedCell) {
