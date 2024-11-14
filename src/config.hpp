@@ -45,10 +45,11 @@ struct Config {
     int BOIDS_N;
     int GROUPS_N;
     int OBSTACLES_N;
+    int GRID_SIZE_MULT;
 
     std::string version = "0";
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, Boid, DEBUG_COLOR, BOIDS_N, GROUPS_N, OBSTACLES_N, version)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, Boid, DEBUG_COLOR, BOIDS_N, GROUPS_N, OBSTACLES_N, GRID_SIZE_MULT, version)
 };
 
 inline Config CONF;

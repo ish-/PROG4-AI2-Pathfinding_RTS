@@ -1,8 +1,9 @@
 {
   "DEBUG_COLOR": [1,1,1,1],
-  "BOIDS_N": 100,
+  "BOIDS_N": 30,
   "GROUPS_N": 3,
-  "OBSTACLES_N": 40,
+  "OBSTACLES_N": 10,
+  "GRID_SIZE_MULT": 6,
 
   "Boid": {
     "speed": 120,

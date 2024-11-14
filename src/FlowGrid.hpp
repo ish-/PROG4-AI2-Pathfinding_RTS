@@ -20,8 +20,8 @@ public:
 struct FlowCell : GridCell {
     float pfDist = 9999;
     vec2 pfToStart = vec2{0,0};
-    FlowCell* pfFromCell = nullptr;
-    FlowCell* pfToCell = nullptr;
+    FlowCell* pfToStartCell = nullptr;
+    FlowCell* pfToDestCell = nullptr;
     float pfDirWeight = 0;
     bool pfPath = false;
     int pfRun = -1;
@@ -34,9 +34,9 @@ struct FlowCell : GridCell {
     }
 
     // ~FlowCell () {
-    //     if (pfFromCell) {
-    //         delete pfFromCell;
-    //         pfFromCell = nullptr;
+    //     if (pfToStartCell) {
+    //         delete pfToStartCell;
+    //         pfToStartCell = nullptr;
     //     }
     // }
 };
@@ -69,7 +69,7 @@ public:
     // };
 
     int pfRun = 0;
-    std::vector<FlowCell*> path;
+    // std::vector<FlowCell*> path;
     FlowCell* destCell;
     FlowCell* startCell;
 
@@ -78,8 +78,8 @@ public:
         : Grid(size, cellSize) {};
 
     // void setCompassWeights (FlowCell* fromCell, FlowCell* toCell);
-    void setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId);
-    void setPath(FlowCell* startCell, FlowCell* destCell);
+    vector<FlowCell*> setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId);
+    vector<FlowCell*> setPath(FlowCell* startCell, FlowCell* destCell, FlowCell* usedCell = nullptr);
 
     void draw (const Rectangle& rect);
 

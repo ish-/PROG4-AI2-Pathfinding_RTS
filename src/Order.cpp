@@ -1,4 +1,5 @@
 #include "Order.hpp"
+#include "FlowGrid.hpp"
 #include "Obstacle.hpp"
 #include "ShortPath.hpp"
 
@@ -15,6 +16,7 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
     meanPos += boid->pos;
   meanPos = meanPos / items.size();
 
+  // projection Obtacles to Grid and setting them as .obstacles
   for (Obstacle* obstacle : obstacles) {
     Rectangle gridObstacleRect = obstacle->rect / FlowGrid::CELL_SIZE;
     for (auto* cell : pathfinder.atRect(gridObstacleRect))
@@ -27,7 +29,7 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
 
   for (auto* boid : items) {
     auto* cell = pathfinder.at(boid->pos);
-    pathfinder.setFlowField(destCell, cell, boid->id);
+    vector<FlowCell*> path = pathfinder.setFlowField(cell, destCell, boid->id);
 
   }
 

@@ -67,6 +67,10 @@ template <typename T = vec2>
 inline bool operator==(const T& a, const T& b) {
     return a.x == b.x && a.y == b.y;
 }
+template <typename T = vec2>
+inline vec2 abs(const T& a) {
+    return { abs(a.x), abs(a.y) };
+}
 
 template <typename T = vec2>
 inline Rectangle operator/(const Rectangle& r, const T& v) {

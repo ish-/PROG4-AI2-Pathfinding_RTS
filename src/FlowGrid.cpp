@@ -64,11 +64,11 @@ void FlowGrid::draw (const Rectangle& rect) {
 // }
 
 const int FLOW_MAX_ITERS = 10000;
-void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId) {
+vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId) {
     pfRun++;
-    auto* tmp = startCell;
-    startCell = destCell;
-    destCell = tmp;
+    // auto* tmp = startCell;
+    // startCell = destCell;
+    // destCell = tmp;
     this->startCell = startCell;
     this->destCell = destCell;
     float dist = Vector2Length(startCell->pos - destCell->pos);
@@ -93,6 +93,12 @@ void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId)
         // FlowCell* curCell = queueCells.front();
         queueCells.pop();
         passedCells.insert(curCell);
+
+        if (curCell->pfPath) {
+            LOG("Found PATH", boidId, curCell->pos);
+            clearQueue();
+            return setPath(startCell, destCell, curCell);
+        }
 
         for (int i = 0; i < 8; i++) {
             const ivec2& offset = KERNEL_ALL_1[i];
@@ -120,18 +126,18 @@ void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId)
             if (cell->pfRun == pfRun && cell->pfDist <= nextDist)
                 continue;
 
-            if (cell->pfPath) {
-                cell->pfFromCell = curCell;
-                LOG("Found PATH", boidId, cell->pos, curCell->pos);
-                clearQueue();
-                setPath(startCell, destCell);
-                return;
-            }
+            // if (cell->pfPath) {
+            //     cell->pfToStartCell = curCell;
+            //     LOG("Found PATH", boidId, cell->pos, curCell->pos);
+            //     clearQueue();
+            //     setPath(startCell, destCell);
+            //     return;
+            // }
 
             cell->pfRun = pfRun;
             cell->pfDist = nextDist;
             // if (cell != startCell)
-                cell->pfFromCell = curCell;
+                cell->pfToStartCell = curCell;
             cell->pfToStart = offset;
             vec2 toDest = destCell->pos - cell->pos;
             float distToDest = Vector2Length(toDest);
@@ -152,9 +158,8 @@ void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId)
 
             if (cell == destCell/* && !path.size()*/) {
                 LOG("Found DESTination", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
-                setPath(startCell, destCell);
                 clearQueue();
-                return;
+                return setPath(startCell, destCell);
             } else
                 queueCells.push(cell);
         }
@@ -162,39 +167,58 @@ void FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell, int boidId)
     LOG("End of while", boidId, startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
 }
 
-void FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell) {
+vector<FlowCell*> FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell, FlowCell* usedCell) {
+    vector<FlowCell*> path; {
+        vec2 toDest = startCell->pos - destCell->pos;
+        vec2 toDestAbs = abs(toDest);
+        path.reserve(Vector2Distance(startCell->pos, destCell->pos) + abs(toDest.x - toDest.y) * 1.5);
+    }
+
+    if (usedCell) {
+        int i = 0;
+        for(FlowCell* cell = usedCell; cell != destCell && i < 100; i++) {
+            if (!cell) {
+                LOG("setPath() used!", usedCell->pos);
+                break;
+            }
+            cell = cell->pfToDestCell;
+            path.push_back(cell);
+        }
+        destCell = usedCell;
+    }
+
     int i = 0;
     for(FlowCell* cell = destCell; cell != startCell && i < 100; i++) {
         if (cell == nullptr) {
-            LOG(CRED("cell is empty"), i, startCell->pos, destCell->pos);
-            return;
+            LOG(CRED("setPath() cell is empty"), i, startCell->pos, destCell->pos);
+            break;
         }
         FlowCell* prevCell = cell;
-        cell = cell->pfFromCell;
+        cell = cell->pfToStartCell;
 
         if (cell == nullptr) {
-            LOG(CRED("pfFromCell is empty"), i);
+            LOG(CRED("pfToStartCell is empty"), i);
 
+            // print bad path
             int i = 0;
             for(FlowCell* cell = destCell; cell != startCell && i < 100; i++) {
                 LOG("---", cell->pos);
                 cell->debug = true;
-                if (!cell || !cell->pfFromCell) {
-                    return;
-                }
-
-                cell = cell->pfFromCell;
+                if (!cell || !cell->pfToStartCell)
+                    break;
+                cell = cell->pfToStartCell;
             }
 
             LOG(CRED("------"));
-            return;
+            break;
         }
         cell->pfPath = true;
-        cell->pfToCell = prevCell;
+        cell->pfToDestCell = prevCell;
         path.push_back(cell);
     }
     startCell->pfPath = true;
     path.push_back(startCell);
+    return path;
 }
 
 vec2 FlowGrid::getDir (vec2& pos, bool repeat) {
@@ -216,11 +240,11 @@ vec2 FlowGrid::getDir (vec2& pos, bool repeat) {
 
 void FlowGrid::reset () {
     // LOG_TIMER timer("FlowGrid::reset");
-    path.erase(path.begin(), path.end());
+    // path.erase(path.begin(), path.end());
     for (auto& cell : cells) {
         cell.pfDist = 9999;
         cell.pfToStart = Vector2{0,0};
-        cell.pfFromCell = nullptr;
+        cell.pfToStartCell = nullptr;
         cell.pfPath = false;
     }
 

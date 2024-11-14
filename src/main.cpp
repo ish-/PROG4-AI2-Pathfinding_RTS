@@ -22,8 +22,6 @@ float FPS = 60.f;
 float FRAME_TIME = 1. / FPS;
 Vector2 wSize {1280, 720};
 Vector2 wRatio { 16, 9 };
-static ivec2 gridSize { (int)wRatio.x*6, (int)wRatio.y*6 };
-static Vector2 cellSize = { wSize.x / gridSize.x, wSize.y / gridSize.y };
 
 bool showDebug;
 Vector2 pointerPos {wSize.x/2,wSize.y/2};
@@ -54,11 +52,11 @@ int main()
 {
     std::filesystem::current_path(BIN_TO_BUILD_PATH);
 
-    FlowGrid::CELL_SIZE = cellSize;
-    FlowGrid::SIZE = gridSize;
-
     LoadConfig();
     LOG("Config version", CONF.version);
+
+    FlowGrid::SIZE = { (int)wRatio.x * CONF.GRID_SIZE_MULT, (int)wRatio.y * CONF.GRID_SIZE_MULT };
+    FlowGrid::CELL_SIZE = { wSize.x / FlowGrid::SIZE.x, wSize.y / FlowGrid::SIZE.y };
 
     InitWindow(wSize.x, wSize.y, "AI2-pathfinding-rts");
     SetTargetFPS(FPS);
@@ -149,10 +147,10 @@ int main()
                             hoverCell->pfToStart.x,
                             hoverCell->pfToStart.y,
                             hoverCell->pfDirWeight,
-                            hoverCell->pfFromCell ? hoverCell->pfFromCell->pos.x : -1,
-                            hoverCell->pfFromCell ? hoverCell->pfFromCell->pos.y : -1,
-                            hoverCell->pfToCell ? hoverCell->pfToCell->pos.x : -1,
-                            hoverCell->pfToCell ? hoverCell->pfToCell->pos.y : -1
+                            hoverCell->pfToStartCell ? hoverCell->pfToStartCell->pos.x : -1,
+                            hoverCell->pfToStartCell ? hoverCell->pfToStartCell->pos.y : -1,
+                            hoverCell->pfToDestCell ? hoverCell->pfToDestCell->pos.x : -1,
+                            hoverCell->pfToDestCell ? hoverCell->pfToDestCell->pos.y : -1
                         ), 20, 120, 30, CONF.DEBUG_COLOR);
                 }
             }
