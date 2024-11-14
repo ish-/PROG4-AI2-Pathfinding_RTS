@@ -17,6 +17,7 @@ public:
   static int MoveOrder_i;
 
   int id;
+  bool inited = false;
   vec2 destination;
   FlowCell* destCell;
   vector<Boid*> items;

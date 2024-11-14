@@ -8,8 +8,6 @@
 #include "FlowGrid.hpp"
 #include "Grid.hpp"
 
-// FlowGrid<TCell>::FlowGrid (ivec2 _size) : Grid<TCell>(_size) {};
-
 Color CELL_HOVER_COLOR = ORANGE;
 
 ivec2 FlowGrid::SIZE = ivec2(16, 9);
@@ -18,54 +16,6 @@ vec2 FlowGrid::CELL_SIZE = vec2(1280./16., 720./9.);
 vector<FlowCell*> FlowGrid::getPath (vec2& start, vec2& dest) {
     return setFlowField(at(start), at(dest));
 }
-
-void FlowGrid::draw (const Rectangle& rect) {
-    Vector2 cellSize = { rect.width / this->size.x, rect.height / this->size.y };
-
-    for (const FlowCell& cell : this->cells) {
-        Color fillColor = WHITE;
-        Color borderColor = BLUE;
-        /*if (&cell == hoverCell) {
-            fillColor = CELL_HOVER_COLOR;
-        } else*/ if (cell.obstacle) {
-            fillColor = BLACK;
-        } else {
-            // float lightness = (1. - std::max(0., 20. - cell.pfDist) / 20.) * 255;
-            // unsigned char uChLightness = (unsigned char)lightness;
-            // fillColor = { uChLightness, uChLightness, uChLightness, 255 };
-
-            if (cell.pfDist < 1000) {
-                float angle = atan2(cell.pfToStart.y, cell.pfToStart.x) * (180.0f / PI);
-                fillColor = ColorFromHSV(angle, .5, 1);
-                // if (cell.debug) {
-                //     fillColor = BLACK;
-                // }
-            //     float r = mapRange(cell.pfToStart.x, -1, 1, 0, 255);
-            //     float g = mapRange(cell.pfToStart.y, -1, 1, 0, 255);
-            //     fillColor = Color({(unsigned char)r, (unsigned char)g, 0, 255});
-            }
-        }
-
-        vec2 pos {cell.pos.x * cellSize.x, cell.pos.y * cellSize.y};
-        fillColor.a = 100;
-        DrawRectangle(pos.x, pos.y, cellSize.x, cellSize.y, fillColor);
-        // DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
-        // DrawText(TextFormat("%.1f,%.1f", cell.pfToStart.x, cell.pfToStart.y), pos.x + 2, pos.y + 2, 11, BLACK);
-        static const vec2 PATH_SIZE = cellSize / 3;
-        if (cell.pfPath)
-            DrawRectangle(pos.x + (cellSize.x-PATH_SIZE.x)/2, pos.y + (cellSize.y-PATH_SIZE.y)/2, PATH_SIZE.x, PATH_SIZE.y, RED);
-        if (cell.corner)
-            DrawRectangle(pos.x, pos.y + cellSize.y/2, cellSize.x/2, cellSize.y/2, GREEN);
-    }
-};
-
-// Set the weights of the compass cells by dot product to the `destCell` direction
-// void FlowGrid::setCompassWeights (FlowCell* startCell, FlowCell* destCell) {
-//     vec2 dir = destCell->pos - startCell->pos;
-//     for (CompassCell* compassCell : compass) {
-//         compassCell->dirWeight = Vector2DotProduct(compassCell->pos, dir);
-//     }
-// }
 
 const int FLOW_MAX_ITERS = 10000;
 vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell) {
@@ -83,12 +33,6 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
 
     const float MAX_DIST = sqrt(size.x*size.x + size.y*size.y);
     const float MAX_DIST_SQR = size.x*size.x + size.y*size.y;
-
-    // if (repeat) {
-    //     LOG("R", startCell->pos, destCell->pos);
-    // } else {
-    //     LOG("-R", startCell->pos, destCell->pos);
-    // }
 
     int maxIters = FLOW_MAX_ITERS;
     while (!queueCells.empty() && (maxIters--) > 0) {
@@ -117,7 +61,6 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
             if (cell->obstacle)
                 continue;
             if (i > 3) { // diagonal
-                // LOG("i:", i, curCell->pos);
                 if (at(curCell->pos + ivec2(offset.x, 0))->obstacle && at(curCell->pos + ivec2(0, offset.y))->obstacle) {
                     curCell->corner = true;
                     cell->corner = true;
@@ -152,15 +95,14 @@ vector<FlowCell*> FlowGrid::setFlowField(FlowCell* startCell, FlowCell* destCell
                 toDest / distToDest
             ) + (1. - distToDest / dist) * 2.;
 
+            // TODO: merge pathes with same found neighbors
             // if (repeat && isPassedCell) {
             //     setPath(startCell, destCell);
             //     clearQueue();
             //     return;
             // }
 
-            // cell->pfDirWeight = 1. - toLenSqr / MAX_DIST_SQR;
-
-            if (cell == destCell/* && !path.size()*/) {
+            if (cell == destCell) {
                 LOG("Found DESTination", startCell->pos, destCell->pos, FLOW_MAX_ITERS - maxIters);
                 clearQueue();
                 return setPath(startCell, destCell);
@@ -264,3 +206,45 @@ void FlowGrid::clearQueue () {
     passedCells.erase(passedCells.begin(), passedCells.end());
     while (!queueCells.empty()) queueCells.pop();
 }
+
+void FlowGrid::draw (const Rectangle& rect) {
+    Vector2 cellSize = { rect.width / this->size.x, rect.height / this->size.y };
+
+    for (const FlowCell& cell : this->cells) {
+        Color fillColor = WHITE;
+        Color borderColor = BLUE;
+        /*if (&cell == hoverCell) {
+            fillColor = CELL_HOVER_COLOR;
+        } else*/ if (cell.obstacle) {
+            fillColor = BLACK;
+        } else {
+            // float lightness = (1. - std::max(0., 20. - cell.pfDist) / 20.) * 255;
+            // unsigned char uChLightness = (unsigned char)lightness;
+            // fillColor = { uChLightness, uChLightness, uChLightness, 255 };
+
+            if (cell.pfDist < 1000) {
+                float angle = atan2(cell.pfToStart.y, cell.pfToStart.x) * (180.0f / PI);
+                fillColor = ColorFromHSV(angle, .5, 1);
+                // if (cell.debug) {
+                //     fillColor = BLACK;
+                // }
+            //     float r = mapRange(cell.pfToStart.x, -1, 1, 0, 255);
+            //     float g = mapRange(cell.pfToStart.y, -1, 1, 0, 255);
+            //     fillColor = Color({(unsigned char)r, (unsigned char)g, 0, 255});
+            }
+            else
+                continue;
+        }
+
+        vec2 pos {cell.pos.x * cellSize.x, cell.pos.y * cellSize.y};
+        fillColor.a = 100;
+        DrawRectangle(pos.x, pos.y, cellSize.x, cellSize.y, fillColor);
+        // DrawRectangleLines(pos.x, pos.y, cellSize.x, cellSize.y, borderColor);
+        // DrawText(TextFormat("%.1f,%.1f", cell.pfToStart.x, cell.pfToStart.y), pos.x + 2, pos.y + 2, 11, BLACK);
+        // static const vec2 PATH_SIZE = cellSize / 3;
+        // if (cell.pfPath)
+        //     DrawRectangle(pos.x + (cellSize.x-PATH_SIZE.x)/2, pos.y + (cellSize.y-PATH_SIZE.y)/2, PATH_SIZE.x, PATH_SIZE.y, RED);
+        // if (cell.corner)
+        //     DrawRectangle(pos.x, pos.y + cellSize.y/2, cellSize.x/2, cellSize.y/2, GREEN);
+    }
+};

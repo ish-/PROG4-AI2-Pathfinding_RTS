@@ -9,11 +9,8 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
   : destination(destination), items(items) {
 
   id = MoveOrder_i++;
+  destCell = grid.at(destination);
   LOG("MoveOrder()", id);
-  vec2 meanPos {0,0};
-  for (Boid* boid : items)
-    meanPos += boid->pos;
-  meanPos = meanPos / items.size();
 
   // projection Obtacles to Grid and setting them as .obstacle
   for (Obstacle* obstacle : obstacles) {
@@ -22,7 +19,8 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
       cell->obstacle = true;
   }
 
-  destCell = grid.at(destination);
+  if (destCell->obstacle)
+    return;
 
   pathfinders.reserve(items.size());
   for (auto* boid : items) {
@@ -36,6 +34,7 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
 
   // if (grid.path.size())
   //   shortPath.calc(grid.path, obstacles, FlowGrid::CELL_SIZE);
+  inited = true;
 }
 
 vec2 MoveOrder::getDir (Boid* boid) {
@@ -52,7 +51,12 @@ vec2 MoveOrder::getDestination () {
 ////////////////////////////////////////
 
 shared_ptr<MoveOrder> MoveOrderManager::create (vector<Boid*>& boids, vec2& destination, vector<Obstacle*>& obstacles) {
+  if (boids.empty())
+    return nullptr;
+
   auto order = std::make_shared<MoveOrder>(destination, boids, obstacles);
+  if (!order->inited)
+    return nullptr;
   orders.push_back(order);
   for (Boid* boid : boids)
     boid->order = order;
