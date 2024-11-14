@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <vector>
 #include <queue>
 // #include <deque>
@@ -9,6 +10,8 @@
 
 #include "common/math.hpp"
 #include "Grid.hpp"
+#include "PathfindCell.hpp"
+#include "interfaces.hpp"
 
 using namespace std;
 
@@ -17,34 +20,7 @@ public:
   virtual vec2 getDir (vec2& pos, bool repeat = false) = 0;
 };
 
-struct FlowCell : GridCell {
-    float pfDist = 9999;
-    vec2 pfToStart = vec2{0,0};
-    FlowCell* pfToStartCell = nullptr;
-    FlowCell* pfToDestCell = nullptr;
-    float pfDirWeight = 0;
-    bool pfPath = false;
-    int pfRun = -1;
-    bool obstacle = false;
-    bool corner = false;
-    bool debug = false;
-
-    bool operator > (const FlowCell& other) const {
-        return pfDirWeight > other.pfDirWeight;
-    }
-
-    // ~FlowCell () {
-    //     if (pfToStartCell) {
-    //         delete pfToStartCell;
-    //         pfToStartCell = nullptr;
-    //     }
-    // }
-};
-
-// class CompassCell: public GridCell {
-// public:
-//     float dirWeight = 0;
-// };
+using FlowCell = PathfindCell;
 
 struct CompareFlowCellPriorityPtr {
     bool operator()(const FlowCell* a, const FlowCell* b) const {

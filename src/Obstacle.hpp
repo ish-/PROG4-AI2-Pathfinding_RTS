@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <raylib.h>
 
 class Obstacle {
@@ -11,3 +12,5 @@ public:
 
     void draw();
 };
+
+using Obstacles = std::vector<Obstacle*>;

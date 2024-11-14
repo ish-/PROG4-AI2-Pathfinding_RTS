@@ -1,19 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <raymath.h>
 
 #include "common/math.hpp"
 #include "common/log.hpp"
-#include "raymath.h"
+#include "GridCell.hpp"
 
 using namespace std;
-
-struct GridCell {
-    ivec2 pos = {-1,-1};
-    int idx = -1;
-    GridCell (ivec2 pos, int idx) : pos(pos), idx(idx) {};
-    GridCell () = default;
-};
 
 template <typename TCell = GridCell>
 class Grid {

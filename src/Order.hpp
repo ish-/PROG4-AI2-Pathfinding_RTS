@@ -4,7 +4,7 @@
 #include "common/math.hpp"
 #include "Boid.hpp"
 #include "FlowGrid.hpp"
-#include "ShortPath.hpp"
+// #include "ShortPath.hpp"
 
 class MoveOrder;
 using MoveOrderPtr = std::shared_ptr<MoveOrder>;
@@ -19,7 +19,7 @@ public:
   FlowCell* destCell;
   vector<Boid*> items;
   FlowGrid pathfinder;
-  ShortPath shortPath;
+  // ShortPath shortPath;
 
   MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>& obstacles);
 

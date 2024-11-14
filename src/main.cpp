@@ -131,7 +131,7 @@ int main()
 
                 if (MoveOrderPtr order = GetLastOrder()) {
                     order->pathfinder.draw({0,0,wSize.x,wSize.y});
-                    order->shortPath.draw();
+                    // order->shortPath.draw();
                     DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
                     if (selection.items.size()) {
                         Boid* boid = selection.items[0];
