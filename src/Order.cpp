@@ -1,7 +1,6 @@
 #include "Order.hpp"
 #include "FlowGrid.hpp"
 #include "Obstacle.hpp"
-// #include "ShortPath.hpp"
 
 float MoveOrder::DONE_DIST_SQR = 20 * 20;
 int MoveOrder::MoveOrder_i = 0;
@@ -19,29 +18,31 @@ MoveOrder::MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>
   // projection Obtacles to Grid and setting them as .obstacle
   for (Obstacle* obstacle : obstacles) {
     Rectangle gridObstacleRect = obstacle->rect / FlowGrid::CELL_SIZE;
-    for (auto* cell : pathfinder.atRect(gridObstacleRect))
+    for (auto* cell : grid.atRect(gridObstacleRect))
       cell->obstacle = true;
   }
 
-  destCell = pathfinder.at(destination);
-  // auto* destCell = pathfinder.at(pathfinder.toCoord(FlowGrid::CELL_SIZE, meanPos));
-  // pathfinder.setFlowField(destCell, destCell);
+  destCell = grid.at(destination);
 
+  pathfinders.reserve(items.size());
   for (auto* boid : items) {
-    auto* cell = pathfinder.at(boid->pos);
-    vector<FlowCell*> path = pathfinder.setFlowField(cell, destCell);
+    Pathfinder* pf = new Pathfinder(grid, obstacles);
+    pathfinders[boid] = pf;
+
+    pf->calcPath(boid->pos, destination);
+    // vector<FlowCell*> path = grid.setFlowField(cell, destCell);
 
   }
 
-  // if (pathfinder.path.size())
-  //   shortPath.calc(pathfinder.path, obstacles, FlowGrid::CELL_SIZE);
+  // if (grid.path.size())
+  //   shortPath.calc(grid.path, obstacles, FlowGrid::CELL_SIZE);
 }
 
-vec2 MoveOrder::getDir (vec2& pos) {
-  vec2 dir = pathfinder.getDir(pos);
-  if (dir.x == 0 && dir.y == 0)
-    return Vector2Normalize(pos - destination);
-  return dir;
+vec2 MoveOrder::getDir (Boid* boid) {
+  return pathfinders[boid]->getDir(boid->pos);
+  // if (dir.x == 0 && dir.y == 0)
+  //   return Vector2Normalize(boid->pos - destination);
+  // return dir;
 }
 
 vec2 MoveOrder::getDestination () {

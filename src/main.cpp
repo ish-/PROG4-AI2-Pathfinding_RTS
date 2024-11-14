@@ -130,7 +130,7 @@ int main()
                 DrawText(TextFormat("%i fps, %i orders", GetFPS(), moveOrderManager.orders.size()), 20, 20, 30, CONF.DEBUG_COLOR);
 
                 if (MoveOrderPtr order = GetLastOrder()) {
-                    order->pathfinder.draw({0,0,wSize.x,wSize.y});
+                    order->grid.draw({0,0,wSize.x,wSize.y});
                     // order->shortPath.draw();
                     DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
                     if (selection.items.size()) {
@@ -139,7 +139,7 @@ int main()
                             DrawText(TextFormat("dest: (%i, %i)", moveOrder->destCell->pos.x, moveOrder->destCell->pos.y), 20, 80, 30, CONF.DEBUG_COLOR);
                     }
 
-                    if (FlowCell* hoverCell = order->pathfinder.at(pointerPos))
+                    if (FlowCell* hoverCell = order->grid.at(pointerPos))
                         DrawText(TextFormat(
                             "(%i, %i) (%.1f, %.1f)-%.2f <- (%i, %i) -> (%i, %i)",
                             hoverCell->pos.x,

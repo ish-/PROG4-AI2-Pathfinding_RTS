@@ -9,13 +9,14 @@
 
 using namespace std;
 
+class Boid;
+
 class IBoidMoveOrder {
 public:
-    virtual vec2 getDir(Vector2& pos) = 0;
+    virtual vec2 getDir(Boid* boid) = 0;
     virtual vec2 getDestination () = 0;
 };
 
-class Boid;
 
 struct BoidClosest {
     float dist;

@@ -1,9 +1,11 @@
 #pragma once
 #include <memory>
+#include <unordered_map>
 
 #include "common/math.hpp"
 #include "Boid.hpp"
 #include "FlowGrid.hpp"
+#include "Pathfinder.hpp"
 // #include "ShortPath.hpp"
 
 class MoveOrder;
@@ -18,12 +20,13 @@ public:
   vec2 destination;
   FlowCell* destCell;
   vector<Boid*> items;
-  FlowGrid pathfinder;
+  unordered_map<Boid*, Pathfinder*> pathfinders;
+  FlowGrid grid;
   // ShortPath shortPath;
 
   MoveOrder (vec2& destination, vector<Boid*>& items, vector<Obstacle*>& obstacles);
 
-  vec2 getDir (vec2& pos) override;
+  vec2 getDir (Boid* boid) override;
 
   vec2 getDestination () override;
 };

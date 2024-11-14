@@ -1,21 +1,46 @@
+#include "common/log.hpp"
+
 #include "Collisions.hpp"
 #include "interfaces.hpp"
 #include "PathfindCell.hpp"
 #include "Obstacle.hpp"
+#include "raymath.h"
 
 using Path = std::vector<PathfindCell*>;
 
-template<typename A>
-class Pathfinder {
+// template<typename A>
+class Pathfinder: public IPathfinder {
 public:
     // A* agent;
     Path waypoints;
     Obstacles& obstacles;
     IPathfinderGrid& grid;
 
-    Pathfinder(Grid& grid, Obstacles& obstacles) : grid(grid), obstacles(obstacles) {
+    Pathfinder(IPathfinderGrid& grid, Obstacles& obstacles) : grid(grid), obstacles(obstacles) {
 
-    };
+    }
+
+    vec2 getDir(vec2& pos) override {
+        if (waypoints.empty()) {
+            LOG(CRED("No waypoints!"), pos);
+            return { 0, 0 };
+        }
+
+        while (!waypoints.empty()) {
+            PathfindCell* cell = waypoints.back();
+            // TODO: DANGEROUS is nullptr sometime
+            if (cell) {
+                vec2 cellPos = cell->pos * FlowGrid::CELL_SIZE;
+                vec2 toWaypoint = pos - cellPos;
+                float dist = Vector2Length(toWaypoint);
+                if (dist > 30)
+                    return toWaypoint / dist;
+            }
+            waypoints.pop_back();
+        }
+
+        return { 0, 0 };
+    }
 
     void calcPath(vec2& start, vec2& dest) {
         Path path;
@@ -24,7 +49,7 @@ public:
         if (ifDirectLine(start, dest))
             return;
 
-        path = grid.getPath(start, dest);
+        waypoints = grid.getPath(start, dest);
     }
 
     void findWaypoints (Path path) {
@@ -39,8 +64,9 @@ public:
             if (Collisions::lineRect(start, dest, obstacle->rect))
                 return false;
         }
-        addWaypoint(grid.cellAt(start), dest);
-        addWaypoint(grid.cellAt(dest));
+        auto* destCell = grid.cellAt(dest);
+        addWaypoint(destCell);
+        addWaypoint(grid.cellAt(start), destCell);
         return true;
     }
 
@@ -49,5 +75,5 @@ public:
         waypoints.push_back(cell);
     }
 
-    virtual vec2 getDir(vec2& pos) = 0;
+
 };

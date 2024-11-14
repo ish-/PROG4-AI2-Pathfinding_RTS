@@ -177,15 +177,19 @@ vector<FlowCell*> FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell, Flo
         vec2 toDestAbs = abs(toDest);
         path.reserve(Vector2Distance(startCell->pos, destCell->pos) + abs(toDest.x - toDest.y) * 1.5);
     }
+    destCell->pfPath = true;
 
     if (usedCell) {
         int i = 0;
-        for(FlowCell* cell = usedCell; cell != destCell && i < 100; i++) {
+        // uncomment to bring face-to-face-direction
+        // for(FlowCell* cell = usedCell; cell != destCell && i < 100; i++) { //#
+        for(FlowCell* cell = destCell; cell != usedCell && i < 100; i++) {
             if (!cell) {
                 LOG("setPath() used!", usedCell->pos);
                 break;
             }
-            cell = cell->pfToDestCell;
+            // cell = cell->pfToDestCell; //# uncomment to bring face-to-face-direction
+            cell = cell->pfToStartCell;
             path.push_back(cell);
         }
         destCell = usedCell;

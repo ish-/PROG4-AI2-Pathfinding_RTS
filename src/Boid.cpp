@@ -138,14 +138,10 @@ void Boid::update(double delta, vector<Boid*>& boids, vector<Obstacle*>& obstacl
     ;
 
     if (order) {
-        float dist = Vector2Length(order->getDestination() - pos);
-        if (dist < 30.)
+        vec2 orderDir = order->getDir(this);
+        if (isZero(orderDir))
             order.reset();
-        else {
-            vec2 orderDir = order->getDir(pos);
-            // LOG("orderDir", dist, orderDir);
-            infl -= (orderDir * CONF.Boid.orderWeight);
-        }
+        infl -= (orderDir * CONF.Boid.orderWeight);
     }
 
     //acc = infl - vel;
