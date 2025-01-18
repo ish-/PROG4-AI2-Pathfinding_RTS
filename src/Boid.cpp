@@ -163,8 +163,8 @@ void Boid::draw() const {
     float angle = atan2(vel.y, vel.x) / M_PI * 180/* + 180*/;
     // DrawTexturePro(tex, texRect, { pos.x, pos.y, s, s }, { s/2, s/2 }, angle, COLORS[group]);
     if (selected)
-      DrawPoly(pos, 3, 12, angle, Boid::selectedColor);
-    DrawPoly(pos, 3, 8, angle, COLORS[group]);
+      DrawPoly(pos, 3, 8, angle, Boid::selectedColor);
+    DrawPoly(pos, 3, 5, angle, COLORS[group]);
     if (selected)
       DrawText(TextFormat("%i", id), pos.x-16, pos.y-16, 8, WHITE);
 }

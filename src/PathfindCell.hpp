@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include "common/math.hpp"
 #include "GridCell.hpp"
 
@@ -14,4 +15,9 @@ struct PathfindCell : public GridCell {
     bool obstacle = false;
     bool corner = false;
     bool debug = false;
+
+    std::ostream& operator<<(std::ostream& os) {
+        os << "PathfindCell(" << pos;
+        return os;
+    }
 };

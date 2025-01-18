@@ -132,6 +132,10 @@ vector<FlowCell*> FlowGrid::setPath(FlowCell* startCell, FlowCell* destCell, Flo
             }
             // cell = cell->pfToDestCell; //# uncomment to bring face-to-face-direction
             cell = cell->pfToStartCell;
+            if (!cell) {
+                LOG("setPath() used! no pfToStartCell", usedCell->pos);
+                break;
+            }
             path.push_back(cell);
         }
         destCell = usedCell;

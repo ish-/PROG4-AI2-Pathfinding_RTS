@@ -7,9 +7,11 @@
 #include <raylib.h>
 #include <raymath.h>
 
-#include "Grid.hpp"
+#include "Selection.hpp"
+#include "common/rl.hpp"
 #include "common/math.hpp"
 #include "common/log.hpp"
+
 #include "StateChangeDetector.hpp"
 #include "config.hpp"
 #include "FlowGrid.hpp"
@@ -17,6 +19,7 @@
 #include "Boid.hpp"
 #include "BoidSelection.hpp"
 #include "Order.hpp"
+#include "DebugInfo.hpp"
 
 float FPS = 60.f;
 float FRAME_TIME = 1. / FPS;
@@ -30,10 +33,12 @@ int frame = 0;
 double now = 0;
 double delta = 0;
 bool paused = false;
+DebugInfo debugInfo;
 
 Vector2& pointer = pointerPos;
 StateChangeDetector fullscreenBtn;
 StateChangeDetector reloadConfigBtn;
+StateChangeDetector reloadBtn;
 StateChangeDetector showDebugBtn;
 StateChangeDetector pauseBtn;
 StateChangeDetector pointerActBtn;
@@ -45,6 +50,7 @@ BoidSelection selection;
 MoveOrderManager moveOrderManager;
 void CreateObstacles ();
 void CreateBoids();
+void Restart();
 bool DrawAliveAndClearDead (Boid* boid);
 MoveOrderPtr GetLastOrder ();
 
@@ -55,8 +61,10 @@ int main()
     LoadConfig();
     LOG("Config version", CONF.version);
 
+
     FlowGrid::SIZE = { (int)wRatio.x * CONF.GRID_SIZE_MULT, (int)wRatio.y * CONF.GRID_SIZE_MULT };
     FlowGrid::CELL_SIZE = { wSize.x / FlowGrid::SIZE.x, wSize.y / FlowGrid::SIZE.y };
+    vec2& CELL_SIZE = FlowGrid::CELL_SIZE;
 
     InitWindow(wSize.x, wSize.y, "AI2-pathfinding-rts");
     SetTargetFPS(FPS);
@@ -73,7 +81,13 @@ int main()
         pointerPos = GetMousePosition();
         mouseZ = IsMouseButtonDown(0) ? 1 : (IsMouseButtonDown(1) ? -1 : 0);
 
-        if (reloadConfigBtn.hasChangedOn(IsKeyPressed(KEY_R)))
+        bool reloadBtnState = reloadBtn.hasChangedOn(IsKeyDown(KEY_R) && IsKeyDown(KEY_LEFT_CONTROL));
+        LOG("CTRL+R:", reloadBtnState, IsKeyDown(KEY_R), IsKeyDown(KEY_LEFT_CONTROL));
+
+        if (reloadBtnState)
+            Restart();
+
+        else if (reloadConfigBtn.hasChangedOn(IsKeyPressed(KEY_R)))
             LoadConfig();
 
         if (showDebugBtn.hasChangedOn(IsKeyPressed(KEY_D)))
@@ -101,6 +115,7 @@ int main()
 
         BeginDrawing();
             ClearBackground(BLACK);
+            debugInfo.reset();
 
             if (!paused) {
                 try {
@@ -127,20 +142,14 @@ int main()
                 obstacle->draw();
 
             if (showDebug) {
-                DrawText(TextFormat("%i fps, %i orders", GetFPS(), moveOrderManager.orders.size()), 20, 20, 30, CONF.DEBUG_COLOR);
+                debugInfo.add(TextFormat("%i orders, %i fps, %i boids", moveOrderManager.orders.size(), GetFPS(), CONF.BOIDS_N));
 
                 if (MoveOrderPtr order = GetLastOrder()) {
                     order->grid.draw({0,0,wSize.x,wSize.y});
                     // order->shortPath.draw();
-                    DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
-                    if (selection.items.size()) {
-                        Boid* boid = selection.items[0];
-                        if (auto moveOrder = dynamic_pointer_cast<MoveOrder>(boid->order))
-                            DrawText(TextFormat("dest: (%i, %i)", moveOrder->destCell->pos.x, moveOrder->destCell->pos.y), 20, 80, 30, CONF.DEBUG_COLOR);
-                    }
-
+                    // DrawText(TextFormat("order: %i", order->id), 620, 20, 30, CONF.DEBUG_COLOR);
                     if (FlowCell* hoverCell = order->grid.at(pointerPos))
-                        DrawText(TextFormat(
+                        debugInfo.add(TextFormat(
                             "(%i, %i) (%.1f, %.1f)-%.2f <- (%i, %i) -> (%i, %i)",
                             hoverCell->pos.x,
                             hoverCell->pos.y,
@@ -151,7 +160,33 @@ int main()
                             hoverCell->pfToStartCell ? hoverCell->pfToStartCell->pos.y : -1,
                             hoverCell->pfToDestCell ? hoverCell->pfToDestCell->pos.x : -1,
                             hoverCell->pfToDestCell ? hoverCell->pfToDestCell->pos.y : -1
-                        ), 20, 120, 30, CONF.DEBUG_COLOR);
+                        ));
+
+                    if (selection.items.size()) {
+                        Boid* boid = selection.items[0];
+                        if (auto moveOrder = dynamic_pointer_cast<MoveOrder>(boid->order)) {
+                            debugInfo.add(TextFormat("order: %i (%i, %i)", order->id, moveOrder->destCell->pos.x, moveOrder->destCell->pos.y));
+
+                            // for (auto& [boid, pf] : moveOrder->pathfinders) {
+                            //     auto* cell = pf->waypoints.back();
+                            //     if (!cell) {
+                            //         paused = true;
+                            //         break;
+                            //     }
+                            //     DrawLine((Line){boid->pos, cell->pos*CELL_SIZE}, YELLOW);
+                            //     // for (int i = pf->waypoints.size() - 1; i > 0; i++) {
+                            //     //     PathfindCell* cell = pf->waypoints[i];
+                            //     //     PathfindCell* nextCell = pf->waypoints[i-1];
+                            //     //     if (cell && nextCell) {
+                            //     //         DrawLine(Line({ cell->pos, nextCell->pos }) * CELL_SIZE, RED);
+                            //     //     } else {
+                            //     //         // if (cell)
+                            //     //         //     DrawRectangle(cell->pos.x, cell->pos.y, int width, int height, Color color)
+                            //     //     }
+                            //     // }
+                            // }
+                        }
+                    }
                 }
             }
         EndDrawing();
@@ -203,4 +238,13 @@ MoveOrderPtr GetLastOrder () {
             return wOrder.lock();
     }
     return nullptr;
+}
+
+void Restart () {
+    moveOrderManager.clear();
+    selection.reset();
+    boids.clear();
+    obstacles.clear();
+    CreateObstacles();
+    CreateBoids();
 }

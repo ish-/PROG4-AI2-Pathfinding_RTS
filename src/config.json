@@ -1,6 +1,6 @@
 {
   "DEBUG_COLOR": [1,1,1,1],
-  "BOIDS_N": 30,
+  "BOIDS_N": 500,
   "GROUPS_N": 3,
   "OBSTACLES_N": 10,
   "GRID_SIZE_MULT": 6,
