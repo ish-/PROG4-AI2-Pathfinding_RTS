@@ -64,7 +64,7 @@ inline vec2 operator*(const vec2& a, const T& b) {
     return vec2({ a.x * b.x, a.y * b.y});
 }
 template <typename T = vec2>
-inline bool operator==(const T& a, const T& b) {
+inline bool operator==(const T& a, const T& b) requires requires (T t) { t.x; t.y; } {
     return a.x == b.x && a.y == b.y;
 }
 template <typename T = vec2>

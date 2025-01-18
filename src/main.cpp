@@ -82,7 +82,6 @@ int main()
         mouseZ = IsMouseButtonDown(0) ? 1 : (IsMouseButtonDown(1) ? -1 : 0);
 
         bool reloadBtnState = reloadBtn.hasChangedOn(IsKeyDown(KEY_R) && IsKeyDown(KEY_LEFT_CONTROL));
-        LOG("CTRL+R:", reloadBtnState, IsKeyDown(KEY_R), IsKeyDown(KEY_LEFT_CONTROL));
 
         if (reloadBtnState)
             Restart();
